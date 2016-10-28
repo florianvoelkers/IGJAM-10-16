@@ -15,9 +15,30 @@ local physics = require "physics"
 -- forward declarations and other locals
 local screenW, screenH, halfW = display.actualContentWidth, display.actualContentHeight, display.contentCenterX
 
+local pressedTimer = 0
+
+local function onMove (event)
+	pressedTimer = pressedTimer + 1
+end
+
 local function onKeyEvent (event)
-	print("escape")
-	if event.keyName == "escape" then
+	if event.keyName == "left" then
+		if event.phase == "down" then
+			Runtime:addEventListener( "enterFrame", onMove )
+		elseif event.phase == "up" then
+			Runtime:removeEventListener( "enterFrame", onMove )
+			print(pressedTimer)
+			pressedTimer = 0
+		end
+	elseif event.keyName == "right" then
+		if event.phase == "down" then
+			Runtime:addEventListener( "enterFrame", onMove )
+		elseif event.phase == "up" then
+			Runtime:removeEventListener( "enterFrame", onMove )
+			print(pressedTimer)
+			pressedTimer = 0
+		end
+	elseif event.keyName == "escape" then
 		composer.gotoScene( "menu" )
 		Runtime:removeEventListener( "key", onKeyEvent )
 		composer.removeHidden() 
