@@ -9,6 +9,7 @@ local scene = composer.newScene()
 
 -- include Corona's "physics" library
 local physics = require "physics"
+local speed
 
 --------------------------------------------
 
@@ -52,7 +53,9 @@ end
 local function onTouchLeft(event)
 	if event.phase == "began" then
 		print("touch left")
+		speed = 1
 	elseif event.phase == "ended" then
+		speed = 0
 		print("touch ended")
 	end
 end
@@ -60,7 +63,9 @@ end
 local function onTouchRight(event)
 	if event.phase == "began" then
 		print("touch right")
+		speed = -1
 	elseif event.phase == "ended" then
+		speed = 0
 		print("touch ended")
 	end
 end
@@ -74,6 +79,7 @@ function scene:create( event )
 
 	local sceneGroup = self.view
 	display.setDefault("isAnchorClamped",false)
+	speed = 0
 
 	-- We need physics started to add bodies, but we don't want the simulaton
 	-- running until the scene is on the screen.
@@ -102,20 +108,25 @@ function scene:create( event )
 	world.y = display.contentCenterY
 	physics.addBody( world, "static",{radius=178}  )
 
+	local moon = display.newImageRect( worldGroup, "assets/moon_size.png", 123, 123 )
+	moon.x,moon.y = world.x,world.y
+	moon.anchorX = 0.5
+	moon.anchorY = -2.3
 
-	local leftSide = display.newRect( worldGroup, world.x,world.y, 600, 70 )
+
+	local leftSide = display.newRect( worldGroup, world.x,world.y, 600, 90 )
 	leftSide.alpha=0
 	leftSide.rotation = 135
 	leftSide.anchorX = 0.6
-	leftSide.anchorY = 3.4
+	leftSide.anchorY = 2.8
 
 	physics.addBody( leftSide, "static" )
 
-	local rightSide = display.newRect( worldGroup, world.x,world.y, 600, 70 )
+	local rightSide = display.newRect( worldGroup, world.x,world.y, 600, 90 )
 	rightSide.alpha=0
 	rightSide.rotation = -135
 	rightSide.anchorX = 0.4
-	rightSide.anchorY = 3.4
+	rightSide.anchorY = 2.8
 
 	physics.addBody( rightSide, "static" )
 
@@ -133,21 +144,22 @@ function scene:create( event )
 	        flags = { "water" },
 	        x = world.x,
 	        y = world.y+world.height/2 + 4,
-	        color = { 0.1, 0.1, 1, 0.8 },
-	        halfWidth = 15,
-	        halfHeight = 15
+	        --color = { 0.1, 0.1, 1, 0.5 },
+	        halfWidth = 16,
+	        halfHeight = 16
 	    }
 	)
 
 
 	local function rotateBars( )
-	local ran = math.random()
-	leftSide.rotation = leftSide.rotation-ran
-	rightSide.rotation = rightSide.rotation-ran
+		print(speed)
+	leftSide.rotation = leftSide.rotation + speed
+	rightSide.rotation = rightSide.rotation + speed
 	if leftSide.rotation < -225 then
 		leftSide.rotation = 135
 		rightSide.rotation = -135
 	end
+	moon.rotation = moon.rotation +speed
 
 	if leftSide.rotation >45 then
 		physics.setGravity( -10, 10)
