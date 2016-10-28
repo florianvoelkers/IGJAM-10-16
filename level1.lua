@@ -12,6 +12,9 @@ local physics = require "physics"
 
 --------------------------------------------
 
+display.setStatusBar( display.HiddenStatusBar )
+
+
 -- forward declarations and other locals
 local screenW, screenH, halfW = display.contentWidth, display.contentHeight, display.contentCenterX
 
@@ -70,11 +73,13 @@ function scene:create( event )
 	-- e.g. add display objects to 'sceneGroup', add touch listeners, etc.
 
 	local sceneGroup = self.view
+	display.setDefault("isAnchorClamped",false)
 
 	-- We need physics started to add bodies, but we don't want the simulaton
 	-- running until the scene is on the screen.
 	physics.start()
-	physics.pause()
+	physics.setGravity( 0, 0)
+	physics.setDrawMode( "normal" )
 
 
 	-- create a grey rectangle as the backdrop
@@ -89,6 +94,74 @@ function scene:create( event )
 	sceneGroup:insert( background )
 
 	Runtime:addEventListener( "key", onKeyEvent )
+
+	local worldGroup = display.newGroup()
+
+	local world = display.newImageRect( worldGroup, "assets/world_size.png", 346, 346 )
+	world.x = display.contentCenterX + 18
+	world.y = display.contentCenterY
+	physics.addBody( world, "static",{radius=178}  )
+
+
+	local leftSide = display.newRect( worldGroup, world.x,world.y, 600, 70 )
+	leftSide.alpha=0
+	leftSide.rotation = 135
+	leftSide.anchorX = 0.6
+	leftSide.anchorY = 3.4
+
+	physics.addBody( leftSide, "static" )
+
+	local rightSide = display.newRect( worldGroup, world.x,world.y, 600, 70 )
+	rightSide.alpha=0
+	rightSide.rotation = -135
+	rightSide.anchorX = 0.4
+	rightSide.anchorY = 3.4
+
+	physics.addBody( rightSide, "static" )
+
+	local particleSystem = physics.newParticleSystem{
+		filename = "assets/liquidParticle.png",
+		radius = 3,
+		imageRadius = 5,
+		gravityScale = 1.0,
+		strictContactCheck = true
+	}
+
+	-- Create a "block" of water (LiquidFun group)
+	particleSystem:createGroup(
+	    {
+	        flags = { "water" },
+	        x = world.x,
+	        y = world.y+world.height/2 + 4,
+	        color = { 0.1, 0.1, 1, 0.8 },
+	        halfWidth = 15,
+	        halfHeight = 15
+	    }
+	)
+
+
+	local function rotateBars( )
+	local ran = math.random()
+	leftSide.rotation = leftSide.rotation-ran
+	rightSide.rotation = rightSide.rotation-ran
+	if leftSide.rotation < -225 then
+		leftSide.rotation = 135
+		rightSide.rotation = -135
+	end
+
+	if leftSide.rotation >45 then
+		physics.setGravity( -10, 10)
+	elseif leftSide.rotation > -45 then
+		physics.setGravity( -10, 10)
+	elseif leftSide.rotation > -135 then
+		physics.setGravity( 10, 10)
+	elseif leftSide.rotation > -225 then 
+		physics.setGravity( 10, 10)
+	end
+
+end
+
+Runtime:addEventListener( "enterFrame", rotateBars )
 
 	local leftTouchArea = display.newRect( 0, 0, display.actualContentWidth * 0.5, display.actualContentHeight )
 	leftTouchArea.anchorX, leftTouchArea.anchorY = 0, 0
