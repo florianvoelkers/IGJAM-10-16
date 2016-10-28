@@ -52,7 +52,7 @@ end
 
 local function onTouchLeft(event)
 	if event.phase == "began" then
-		speed = 1
+		speed = 1.1
 	elseif event.phase == "ended" then
 		speed = 0
 	end
@@ -60,7 +60,7 @@ end
 
 local function onTouchRight(event)
 	if event.phase == "began" then
-		speed = -1
+		speed = -1.1
 	elseif event.phase == "ended" then
 		speed = 0
 	end
@@ -132,7 +132,7 @@ function scene:create( event )
 		imageRadius = 5,
 		gravityScale = 1.0,
 		strictContactCheck = true,
-		pressureStrength = 0.1
+		dampingStrength = 2
 	}
 
 	-- Create a "block" of water (LiquidFun group)
