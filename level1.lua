@@ -52,21 +52,17 @@ end
 
 local function onTouchLeft(event)
 	if event.phase == "began" then
-		print("touch left")
 		speed = 1
 	elseif event.phase == "ended" then
 		speed = 0
-		print("touch ended")
 	end
 end
 
 local function onTouchRight(event)
 	if event.phase == "began" then
-		print("touch right")
 		speed = -1
 	elseif event.phase == "ended" then
 		speed = 0
-		print("touch ended")
 	end
 end
 
@@ -115,7 +111,7 @@ function scene:create( event )
 
 
 	local leftSide = display.newRect( worldGroup, world.x,world.y, 600, 90 )
-	leftSide.alpha=0
+	--leftSide.alpha=0
 	leftSide.rotation = 135
 	leftSide.anchorX = 0.6
 	leftSide.anchorY = 2.8
@@ -123,7 +119,7 @@ function scene:create( event )
 	physics.addBody( leftSide, "static" )
 
 	local rightSide = display.newRect( worldGroup, world.x,world.y, 600, 90 )
-	rightSide.alpha=0
+	--rightSide.alpha=0
 	rightSide.rotation = -135
 	rightSide.anchorX = 0.4
 	rightSide.anchorY = 2.8
@@ -135,7 +131,8 @@ function scene:create( event )
 		radius = 3,
 		imageRadius = 5,
 		gravityScale = 1.0,
-		strictContactCheck = true
+		strictContactCheck = true,
+		pressureStrength = 0.1
 	}
 
 	-- Create a "block" of water (LiquidFun group)
@@ -152,28 +149,51 @@ function scene:create( event )
 
 
 	local function rotateBars( )
-		print(speed)
-	leftSide.rotation = leftSide.rotation + speed
-	rightSide.rotation = rightSide.rotation + speed
-	if leftSide.rotation < -225 then
-		leftSide.rotation = 135
-		rightSide.rotation = -135
+		leftSide.rotation = leftSide.rotation + speed
+		rightSide.rotation = rightSide.rotation + speed
+		if leftSide.rotation < -225 then
+			leftSide.rotation = 135
+			rightSide.rotation = -135
+		end
+		moon.rotation = moon.rotation +speed
+
+		local gravityY 
+		if leftSide.rotation <= 135 and leftSide.rotation >= -45 then
+			gravityY = -1 * (leftSide.rotation - 45) / 9
+		else
+			gravityY = (leftSide.rotation + 135) / 9
+		end
+		local gravityX
+		if leftSide.rotation <= 135 and leftSide.rotation >= 45 then
+			gravityX = (leftSide.rotation - 135) / 9
+		elseif leftSide.rotation < 45 and leftSide.rotation >= -135 then
+			gravityX = -1 * (leftSide.rotation + 45) / 9
+		else
+			gravityX = (leftSide.rotation + 225) / 9
+		end
+
+		physics.setGravity(gravityX, gravityY)
+
+		gravityY = nil
+		gravityX = nil
 	end
-	moon.rotation = moon.rotation +speed
 
-	if leftSide.rotation >45 then
-		physics.setGravity( -10, 10)
-	elseif leftSide.rotation > -45 then
-		physics.setGravity( -10, 10)
-	elseif leftSide.rotation > -135 then
-		physics.setGravity( 10, 10)
-	elseif leftSide.rotation > -225 then 
-		physics.setGravity( 10, 10)
+	Runtime:addEventListener( "enterFrame", rotateBars )
+
+
+	local function particleSystemCollision( self, event )
+	 	print(event.phase)
+	   --print( "Collision with particleSystem." )
+	   if ( event.phase == "began" ) then
+	 	print ("collision", "begin")
+	   end
 	end
+	 
+	particleSystem.particleCollision = particleSystemCollision
+	particleSystem:addEventListener( "particleCollision" ,particleSystemCollision)
 
-end
 
-Runtime:addEventListener( "enterFrame", rotateBars )
+
 
 	local leftTouchArea = display.newRect( 0, 0, display.actualContentWidth * 0.5, display.actualContentHeight )
 	leftTouchArea.anchorX, leftTouchArea.anchorY = 0, 0
