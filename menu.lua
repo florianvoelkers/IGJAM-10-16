@@ -33,16 +33,18 @@ function scene:create( event )
 	-- e.g. add display objects to 'sceneGroup', add touch listeners, etc.
 
 	-- display a background image
-	local background = display.newImageRect( "background.jpg", display.actualContentWidth, display.actualContentHeight )
-	background.anchorX = 0
-	background.anchorY = 0
-	background.x = 0 + display.screenOriginX 
-	background.y = 0 + display.screenOriginY
+	print(display.actualContentWidth)
+	print(display.contentWidth)
+	print(display.contentHeight)
+	print(display.actualContentHeight)
+	local background = display.newImageRect( "assets/concept_size.png", display.contentWidth, display.contentHeight )
+	background.x = display.contentCenterX
+	background.y = display.contentCenterY
 	
 	-- create/position logo/title image on upper-half of the screen
-	local titleLogo = display.newImageRect( "logo.png", 792, 126 )
-	titleLogo.x = display.contentCenterX
-	titleLogo.y = 100
+	local titleLogo = display.newImageRect( "logo.png", 346, 55 )
+	titleLogo.x = display.contentCenterX + 18
+	titleLogo.y = display.contentCenterY
 	
 	-- create a widget button (which will loads level1.lua on release)
 	playBtn = widget.newButton{
@@ -53,7 +55,7 @@ function scene:create( event )
 		width=154, height=40,
 		onRelease = onPlayBtnRelease	-- event listener function
 	}
-	playBtn.x = display.contentCenterX
+	playBtn.x = display.contentCenterX + 18
 	playBtn.y = display.contentHeight - 125
 	
 	-- all display objects must be inserted into group

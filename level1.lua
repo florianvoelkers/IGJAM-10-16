@@ -13,7 +13,7 @@ local physics = require "physics"
 --------------------------------------------
 
 -- forward declarations and other locals
-local screenW, screenH, halfW = display.actualContentWidth, display.actualContentHeight, display.contentCenterX
+local screenW, screenH, halfW = display.contentWidth, display.contentHeight, display.contentCenterX
 
 local pressedTimer = 0
 
@@ -46,6 +46,22 @@ local function onKeyEvent (event)
 	end
 end
 
+local function onTouchLeft(event)
+	if event.phase == "began" then
+		print("touch left")
+	elseif event.phase == "ended" then
+		print("touch ended")
+	end
+end
+
+local function onTouchRight(event)
+	if event.phase == "began" then
+		print("touch right")
+	elseif event.phase == "ended" then
+		print("touch ended")
+	end
+end
+
 function scene:create( event )
 
 	-- Called when the scene's view does not exist.
@@ -65,15 +81,31 @@ function scene:create( event )
 	-- the physical screen will likely be a different shape than our defined content area
 	-- since we are going to position the background from it's top, left corner, draw the
 	-- background at the real top, left corner.
-	local background = display.newRect( display.screenOriginX, display.screenOriginY, screenW, screenH )
-	background.anchorX = 0 
-	background.anchorY = 0
-	background:setFillColor( .5 )
+	local background = display.newImageRect( "assets/concept_size.png", display.contentWidth, display.contentHeight )
+	background.x = display.contentCenterX
+	background.y = display.contentCenterY
 	
 	-- all display objects must be inserted into group
 	sceneGroup:insert( background )
 
 	Runtime:addEventListener( "key", onKeyEvent )
+
+	local leftTouchArea = display.newRect( 0, 0, display.actualContentWidth * 0.5, display.actualContentHeight )
+	leftTouchArea.anchorX, leftTouchArea.anchorY = 0, 0
+	leftTouchArea.isVisible = false
+	leftTouchArea.isHitTestable = true
+	leftTouchArea:setFillColor( 1, 1, 1 )
+	leftTouchArea:addEventListener( "touch", onTouchLeft )
+
+	local rightTouchArea = display.newRect( display.actualContentWidth, 0, display.actualContentWidth * 0.5, display.actualContentHeight )
+	rightTouchArea.anchorX, rightTouchArea.anchorY = 1, 0
+	rightTouchArea.isVisible = false
+	rightTouchArea.isHitTestable = true
+	rightTouchArea:setFillColor( 1, 1, 1 )
+	rightTouchArea:addEventListener( "touch", onTouchRight )
+
+	sceneGroup:insert(leftTouchArea)
+	sceneGroup:insert(rightTouchArea)
 end
 
 
