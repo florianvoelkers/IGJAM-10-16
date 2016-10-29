@@ -33,10 +33,10 @@ function scene:create( event )
 	-- e.g. add display objects to 'sceneGroup', add touch listeners, etc.
 
 	-- display a background image
-	print(display.actualContentWidth)
-	print(display.contentWidth)
-	print(display.contentHeight)
-	print(display.actualContentHeight)
+	-- print(display.actualContentWidth)
+	-- print(display.contentWidth)
+	-- print(display.contentHeight)
+	-- print(display.actualContentHeight)
 	local background = display.newImageRect( "assets/concept_size.png", display.contentWidth, display.contentHeight )
 	background.x = display.contentCenterX
 	background.y = display.contentCenterY

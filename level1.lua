@@ -107,6 +107,7 @@ local explosionSequence = {
 local fireBurnSequence = {
 	{name = "fireBurn", frames = {1, 2,3,4,5}, time = 1600}
 }
+
 local waterSteamSequence = {
 	{name = "waterSteam", frames = {1, 2,3,4,5,6,7}, time = 1800}
 }
@@ -115,7 +116,7 @@ local devilFlySheet = graphics.newImageSheet( "assets/character/spritesheets/dev
 local explosionSheet = graphics.newImageSheet( "assets/map/explosion/explosion_spritesheet.png", explosionSheetOptions)
 local devilIdleFireSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_fire_spritesheet.png", devilIdleSheetOptions )
 local fireBurnSheet = graphics.newImageSheet( "assets/map/fire/fire_small_spritesheet.png", fireBurnSheetOptions)
-local waterSteamSheet = graphics.newImageSheet( "assets/character/wasserdampf/wasserdampf_spritesheet.png", waterSteamSheetOptions)
+local waterSteamSheet = graphics.newImageSheet( "assets/character/spritesheets/wasserdampf/wasserdampf_spritesheet.png", waterSteamSheetOptions)
 
 
 local function onMove (event)
@@ -191,10 +192,9 @@ end
 
 
 local function mySpriteListener( event )
-
-	if ( event.phase == "ended" ) then
-	  animation:removeSelf()
-	  animation = nil
+	if ( event.phase == "loop" ) then
+		steams[event.target.id]:removeSelf( )
+		steams[event.target.id] = nil
 	end
 end
 
@@ -202,9 +202,10 @@ end
 local function createSteam( angle )
 	steams[#steams+1] = {}
 	steams[#steams] = display.newSprite( waterSteamSheet,waterSteamSequence )
-	steams[#steams].x, fires[#steams].y = world.x, world.y
+	steams[#steams].x, steams[#steams].y = world.x, world.y
 	steams[#steams].anchorX, steams[#steams].anchorY = 0.4, 3
 	steams[#steams].rotation = angle
+	steams[#steams].id = #steams
 	steams[#steams]:setSequence( "waterSteam" )
 	steams[#steams]:play()
 	sceneGroup:insert(steams[#steams])
@@ -411,7 +412,7 @@ local function onFrame( )
 		if fires[k].hit then
 			if fires[k].isVisible then
 				fires[k].hp = fires[k].hp - 1
-				if fires[k].hp < 15 then
+				if fires[k].hp == 5 then
 					createSteam(fires[k].rotation)
 				elseif fires[k].hp < 1 then
 					fires[k].isVisible = false
@@ -473,7 +474,7 @@ local function onFrame( )
 				if devils[k].hit then
 					if devils[k].isVisible then
 						devils[k].hp = devils[k].hp - 1
-						if devils[k].hp < 10 then
+						if devils[k].hp == 10 then
 							createSteam(devils[k].rotation)
 						elseif devils[k].hp < 1 then
 							devils[k].isVisible = false
@@ -503,7 +504,7 @@ function scene:create( event )
 	left = false
 	right = false
 	speed = 0
-	maxspeed = 0.3
+	maxspeed = 0.5
 	score = 0
 	goToEnd = false
 	fires = {}
