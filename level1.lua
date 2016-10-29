@@ -16,6 +16,7 @@ local speed
 local devils = {}
 local flyingDevils = {}
 local world
+local earth2
 local left
 local right
 local speed
@@ -50,10 +51,10 @@ local devilIdleSheetOptions = {
 
 local devilFlySheetOptions = {
     width = 60,
-    height = 75,
+    height = 60,
     numFrames = 2,
     sheetContentWidth = 120,
-    sheetContentHeight = 75
+    sheetContentHeight = 60
 }
 
 local explosionSheetOptions = {
@@ -77,7 +78,7 @@ local explosionSequence = {
 }
 
 local devilIdleSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_spritesheet.png", devilIdleSheetOptions )
-local devilFlySheet = graphics.newImageSheet( "assets/character/spritesheets/devil_flying_spritesheet.png", devilFlySheetOptions)
+local devilFlySheet = graphics.newImageSheet( "assets/character/spritesheets/devil_fly_cube.png", devilFlySheetOptions)
 local explosionSheet = graphics.newImageSheet( "assets/map/explosion/explosion_spritesheet.png", explosionSheetOptions)
 
 local function onMove (event)
@@ -132,18 +133,18 @@ local function onTouchRight(event)
 end
 
 
-local function createDevil(...)
+local function createDevil(rotation)
 	local devilIdle = display.newSprite( devilIdleSheet, devilIdleSequence )
 	devilIdle.x, devilIdle.y = world.x, world.y
 	devilIdle.anchorX, devilIdle.anchorY = 0.4, 3
-	local randomSpawn = math.random(360)
-	devilIdle.rotation = randomSpawn
+	--local randomSpawn = math.random(360)
+	devilIdle.rotation = rotation
 	return devilIdle
 end
 
-local function setDevil()
+local function setDevil(rotation)
 	devilsCounter = devilsCounter + 1
-	devils[devilsCounter] = createDevil()
+	devils[devilsCounter] = createDevil(rotation)
 	sceneGroup:insert(devils[devilsCounter])
 	devils[devilsCounter]:setSequence( "devilIdle" )
 	devils[devilsCounter]:play()
@@ -181,15 +182,30 @@ end
 
 local function explosionListener (event)
 	if event.phase == "ended" then
+		setDevil(event.target.rotation)
 		event.target:removeSelf()
 		event.target = nil
-		setDevil()
 	end
 end
 
-local function setOfExplosion(devilObject)
+local function setOfExplosion(devilObject, otherObject)
 	local explosion = display.newSprite( explosionSheet, explosionSequence)
-	explosion.x, explosion.y = devilObject.x, devilObject.y 
+	explosion.x, explosion.y = earth2.x, earth2.y
+	explosion.anchorX, explosion.anchorY = 0.5, 3.6
+	local difX = devilObject.x - otherObject.x
+	local difY = devilObject.y - otherObject.y
+	if difY <= 0 then
+		difY = difY + 30
+	else
+		difY = difY - 30
+	end
+	if difX >= 0 then
+		difX = difX - 30
+		explosion.rotation = 0.6 * difY + 90
+	elseif difX <= 0 then
+		difX = difX + 30
+		explosion.rotation = -0.6 * difY + 270
+	end
 	sceneGroup:insert(explosion)
 	explosion:setSequence( "explosion" )
 	explosion:play()
@@ -199,7 +215,15 @@ local function setOfExplosion(devilObject)
 end
 
 local function flyingDevil( devilObject )
-	transition.to( devilObject, {time = 3000, x = world.x, y = world.y, onComplete = setOfExplosion} )
+	transition.to( devilObject, {time = 3000, x = world.x, y = world.y} )
+end
+
+local function onFlyingDevilCollision (self, event)
+	if event.other.myName then
+		if event.other.myName == "earth2" then
+			setOfExplosion(self, event.other)
+		end
+	end
 end
 
 local function spawnDevil (event)
@@ -211,6 +235,10 @@ local function spawnDevil (event)
 		flyingDevils[flyingDevilsCounter]:setSequence( "devilFly" )
 		flyingDevils[flyingDevilsCounter]:play()
 		flyingDevil(flyingDevils[flyingDevilsCounter])
+		physics.addBody( flyingDevils[flyingDevilsCounter], "dynamic", { isSensor = true } )
+		flyingDevils[flyingDevilsCounter].collision = onFlyingDevilCollision
+		flyingDevils[flyingDevilsCounter].myName = "devil"
+		flyingDevils[flyingDevilsCounter]:addEventListener( "collision")
 		spawnTimer = 0
 	end	
 end
@@ -308,9 +336,15 @@ function scene:create( event )
 
 	local worldGroup = display.newGroup()
 
+	earth2 = display.newImageRect (worldGroup, "assets/map/earth.png", 300, 300 )
+	earth2.x, earth2.y = display.contentCenterX, display.contentCenterY
+	earth2.myName = "earth2"
+	physics.addBody( earth2, "static", { radius = 150, isSensor = true})
+
 	world = display.newImageRect( worldGroup, "assets/map/earth.png", 346, 346 )
 	world.x = display.contentCenterX
 	world.y = display.contentCenterY
+	world.myName = "world"
 	physics.addBody( world, "static",{radius=178}  )
 
 	moon = display.newImageRect( worldGroup, "assets/map/moon.png", 123, 123 )
@@ -324,6 +358,7 @@ function scene:create( event )
 	leftSide.rotation = 135
 	leftSide.anchorX = 0.6
 	leftSide.anchorY = 2.8
+	leftSide.myName = "leftSide"
 
 	physics.addBody( leftSide, "static" )
 
@@ -332,6 +367,7 @@ function scene:create( event )
 	rightSide.rotation = -135
 	rightSide.anchorX = 0.4
 	rightSide.anchorY = 2.8
+	rightSide.myName = "rightSide"
 
 	physics.addBody( rightSide, "static" )
 
@@ -341,6 +377,7 @@ function scene:create( event )
 	middleBar.rotation = 0
 	middleBar.anchorX = 0.5
 	middleBar.anchorY = -0.9
+	middleBar.myName = "middleBar"
 
 	physics.addBody( middleBar, "static" )
 
