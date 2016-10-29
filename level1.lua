@@ -177,6 +177,7 @@ local function onKeyEvent (event)
 			pressedTimer = 0
 		end
 	elseif event.keyName == "escape" then
+		physics.stop( )
 		composer.gotoScene( "end" )
 		Runtime:removeEventListener( "key", onKeyEvent )
 		composer.removeHidden() 
@@ -590,11 +591,6 @@ function scene:create( event )
 	sceneGroup = self.view
 
 	display.setDefault("isAnchorClamped",false)
-	
-
-	physics.start()
-	physics.setGravity( 0, 0)
-	physics.setDrawMode( "normal" )
 
 	local background = display.newImageRect( "assets/map/background.png", display.contentWidth, display.contentHeight )
 
@@ -606,6 +602,12 @@ function scene:create( event )
 	Runtime:addEventListener( "key", onKeyEvent )
 
 	local worldGroup = display.newGroup()
+
+	print("physics")
+
+	physics.start()
+	physics.setGravity( 0, 0)
+	physics.setDrawMode( "normal" )
 
 	earth2 = display.newImageRect (worldGroup, "assets/map/earth.png", 300, 300 )
 	earth2.x, earth2.y = display.contentCenterX, display.contentCenterY
@@ -707,13 +709,14 @@ end
 
 
 function scene:show( event )
+	print("show")
 	local sceneGroup = self.view
 	local phase = event.phase
 	
 	if phase == "will" then
+		print("will")
 	elseif phase == "did" then
-
-		physics.start()
+		print("did")
 	end
 end
 
