@@ -7,9 +7,13 @@
 local composer = require( "composer" )
 local scene = composer.newScene()
 
+local sceneGroup
+
 -- include Corona's "physics" library
 local physics = require "physics"
 local speed
+local devils = {}
+local world
 
 --------------------------------------------
 
@@ -20,6 +24,20 @@ display.setStatusBar( display.HiddenStatusBar )
 local screenW, screenH, halfW = display.contentWidth, display.contentHeight, display.contentCenterX
 
 local pressedTimer = 0
+
+local devilIdleSheetOptions = {
+    width = 60,
+    height = 75,
+    numFrames = 6,
+    sheetContentWidth = 360,
+    sheetContentHeight = 75
+}
+
+local devilIdleSequence = {
+	{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 }
+}
+
+local devilIdleSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_spritesheet.png", devilIdleSheetOptions )
 
 local function onMove (event)
 	pressedTimer = pressedTimer + 1
@@ -73,6 +91,30 @@ local function onTouchRight(event)
 	end
 end
 
+local function createDevil(...)
+	local devilIdle = display.newSprite( devilIdleSheet, devilIdleSequence )
+	devilIdle.x, devilIdle.y = world.x, world.y
+	devilIdle.anchorX, devilIdle.anchorY = 0.4, 3
+	local randomSpawn = math.random(360)
+	devilIdle.rotation = randomSpawn
+	return devilIdle
+end
+
+local spawnTimer = 0
+local spawnAfter = 120
+local devilCounter = 0
+local function spawnDevil (event)
+	spawnTimer = spawnTimer + 1
+	if spawnTimer >= spawnAfter then
+		devilCounter = devilCounter + 1
+		devils[devilCounter] = createDevil()
+		sceneGroup:insert(devils[devilCounter])
+		devils[devilCounter]:setSequence( "devilIdle" )
+		devils[devilCounter]:play()
+		spawnTimer = 0
+	end	
+end
+
 function scene:create( event )
 
 	left = false
@@ -84,7 +126,7 @@ function scene:create( event )
 	-- INSERT code here to initialize the scene
 	-- e.g. add display objects to 'sceneGroup', add touch listeners, etc.
 
-	local sceneGroup = self.view
+	sceneGroup = self.view
 	display.setDefault("isAnchorClamped",false)
 	
 
@@ -93,21 +135,6 @@ function scene:create( event )
 	physics.start()
 	physics.setGravity( 0, 0)
 	physics.setDrawMode( "normal" )
-
-	local devilIdleSheetOptions = {
-	    width = 60,
-	    height = 75,
-	    numFrames = 6,
-	    sheetContentWidth = 360,
-	    sheetContentHeight = 75
-	}
-
-	local devilIdleSequence = {
-		{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 }
-	}
-
-	local devilIdleSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_idle_spritesheet.png", devilIdleSheetOptions )
-
 
 	-- create a grey rectangle as the backdrop
 	-- the physical screen will likely be a different shape than our defined content area
@@ -124,7 +151,7 @@ function scene:create( event )
 
 	local worldGroup = display.newGroup()
 
-	local world = display.newImageRect( worldGroup, "assets/world_size.png", 346, 346 )
+	world = display.newImageRect( worldGroup, "assets/world_size.png", 346, 346 )
 	world.x = display.contentCenterX + 18
 	world.y = display.contentCenterY
 	physics.addBody( world, "static",{radius=178}  )
@@ -179,15 +206,6 @@ function scene:create( event )
 	    }
 	)
 
-	local devilIdle = display.newSprite( devilIdleSheet, devilIdleSequence )
-	devilIdle.x, devilIdle.y = world.x, world.y
-	devilIdle.anchorX, devilIdle.anchorY = 0.4, 3
-	local randomSpawn = math.random(360)
-	devilIdle.rotation = randomSpawn
-	devilIdle:setSequence( "devilIdle" )
-	devilIdle:play()
-
-
 	local function rotateBars( )
 
 		print("links",left,"rechts", right)
@@ -239,7 +257,7 @@ function scene:create( event )
 	end
 
 	Runtime:addEventListener( "enterFrame", rotateBars )
-
+	Runtime:addEventListener( "enterFrame", spawnDevil)
 
 	local function particleSystemCollision( self, event )
 	 	print(event.phase)
@@ -269,7 +287,6 @@ function scene:create( event )
 	sceneGroup:insert(leftTouchArea)
 	sceneGroup:insert(rightTouchArea)
 	sceneGroup:insert(worldGroup)
-	sceneGroup:insert( devilIdle )
 end
 
 
@@ -291,6 +308,8 @@ end
 function scene:hide( event )
 	local sceneGroup = self.view
 	Runtime:removeEventListener( "key", onKeyEvent )
+	Runtime:removeEventListener( "enterFrame", rotateBars )
+	Runtime:removeEventListener( "enterFrame", onMove)
 	local phase = event.phase
 	
 	if event.phase == "will" then
