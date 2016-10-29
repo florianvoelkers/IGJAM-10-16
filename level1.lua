@@ -26,6 +26,7 @@ local devilIdle
 local particleSystem
 local ray = {}
 local fireWorld
+local score
 
 
 --------------------------------------------
@@ -221,9 +222,12 @@ local function onFrame( )
 
 	if #devils > 0 and fireWorld.alpha < 1 then
 		fireWorld.hits = fireWorld.hits + 0.0001*#devils
+		--fireWorld.hits = fireWorld.hits + 0.02*#devils
 		fireWorld.alpha = fireWorld.hits
+	elseif fireWorld.alpha > 0.98 then
+		print ("go to end")
+		composer.gotoScene( "end", "fade", 500 )
 	end
-	print (fireWorld.alpha )
 
 	local hits = {}
 	local toDelete = {}
@@ -247,9 +251,10 @@ local function onFrame( )
 					if devils[k].isVisible then
 						devils[k].hp = devils[k].hp - 1
 						if devils[k].hp < 1 then
-							print ("remove")
 							devils[k].isVisible = false
 							table.remove(devils, k)
+							score = score+1
+							print ("score:",score)
 						end
 					end
 				else
@@ -278,6 +283,7 @@ function scene:create( event )
 	right = false
 	speed = 0
 	maxspeed = 0.3
+	score = 0
 
 	sceneGroup = self.view
 
