@@ -156,18 +156,11 @@ local function spawnDevil (event)
 	end	
 end
 
-
-
-
-
 -- Function to draw new line to the hit point
 local drawHitLine = function( hit )
 	--draw a line to the hit
 	ray = display.newLine(world.x, world.y  -200, world.x+20, world.y -220)
-
 end
-
-
 
 local function onFrame( )
 	if 	left == false and right == false and (speed > 0 or speed < 0) then
@@ -263,7 +256,7 @@ function scene:create( event )
 	-- local devilIdleSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_spritesheet.png", devilIdleSheetOptions )
 
 
-	local background = display.newImageRect( "assets/concept_size.png", display.contentWidth, display.contentHeight )
+	local background = display.newImageRect( "assets/map/background.png", display.contentWidth, display.contentHeight )
 	background.x = display.contentCenterX
 	background.y = display.contentCenterY
 	
@@ -273,12 +266,12 @@ function scene:create( event )
 
 	local worldGroup = display.newGroup()
 
-	world = display.newImageRect( worldGroup, "assets/world_size.png", 346, 346 )
+	world = display.newImageRect( worldGroup, "assets/map/earth.png", 346, 346 )
 	world.x = display.contentCenterX + 18
 	world.y = display.contentCenterY
 	physics.addBody( world, "static",{radius=178}  )
 
-	moon = display.newImageRect( worldGroup, "assets/moon_size.png", 123, 123 )
+	moon = display.newImageRect( worldGroup, "assets/map/moon.png", 123, 123 )
 	moon.x,moon.y = world.x,world.y
 	moon.anchorX = 0.5
 	moon.anchorY = -2.3
