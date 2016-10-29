@@ -48,24 +48,37 @@ local devilIdleSheetOptions = {
     sheetContentHeight = 75
 }
 
-local devilSummonSheetOptions = {
+local devilFlySheetOptions = {
     width = 60,
     height = 75,
     numFrames = 2,
-    sheetContentWidth = 160,
+    sheetContentWidth = 120,
     sheetContentHeight = 75
+}
+
+local explosionSheetOptions = {
+	width = 50,
+    height = 60,
+    numFrames = 6,
+    sheetContentWidth = 300,
+    sheetContentHeight = 60
 }
 
 local devilIdleSequence = {
 	{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 }
 }
 
-local devilSummonSequence = {
-	{name = "devilSummon", frames = {1, 2}, time = 500}
+local devilFlySequence = {
+	{name = "devilFly", frames = {1, 2}, time = 200}
+}
+
+local explosionSequence = {
+	{name = "explosion", frames = {1, 2, 3, 4, 5, 6}, time = 1200, loopCount = 1}
 }
 
 local devilIdleSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_spritesheet.png", devilIdleSheetOptions )
-local devilSummonSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_flying_spritesheet.png", devilSummonSheetOptions)
+local devilFlySheet = graphics.newImageSheet( "assets/character/spritesheets/devil_flying_spritesheet.png", devilFlySheetOptions)
+local explosionSheet = graphics.newImageSheet( "assets/map/explosion/explosion_spritesheet.png", explosionSheetOptions)
 
 local function onMove (event)
 	pressedTimer = pressedTimer + 1
@@ -137,13 +150,32 @@ local function setDevil()
 end
 
 local function createFlyingDevil(...)
-	local flyingDevil = display.newSprite( devilSummonSheet, devilSummonSequence)
+	local flyingDevil = display.newSprite( devilFlySheet, devilFlySequence)
 	flyingDevil.x, flyingDevil.y = world.x, display.actualContentHeight + 100
 	return flyingDevil
 end
 
+local function explosionListener (event)
+	if event.phase == "ended" then
+		event.target:removeSelf()
+		event.target = nil
+		setDevil()
+	end
+end
+
+local function setOfExplosion(devilObject)
+	local explosion = display.newSprite( explosionSheet, explosionSequence)
+	explosion.x, explosion.y = devilObject.x, devilObject.y 
+	sceneGroup:insert(explosion)
+	explosion:setSequence( "explosion" )
+	explosion:play()
+	explosion:addEventListener( "sprite", explosionListener )
+	devilObject:removeSelf()
+	devilObject = nil
+end
+
 local function flyingDevil( devilObject )
-	transition.to( devilObject, {time = 3000, x = world.x, y = world.y, onComplete = setDevil} )
+	transition.to( devilObject, {time = 3000, x = world.x, y = world.y, onComplete = setOfExplosion} )
 end
 
 local function spawnDevil (event)
@@ -151,6 +183,9 @@ local function spawnDevil (event)
 	if spawnTimer >= spawnAfter then
 		flyingDevilsCounter = flyingDevilsCounter + 1		
 		flyingDevils[flyingDevilsCounter] = createFlyingDevil()
+		sceneGroup:insert(flyingDevils[flyingDevilsCounter])
+		flyingDevils[flyingDevilsCounter]:setSequence( "devilFly" )
+		flyingDevils[flyingDevilsCounter]:play()
 		flyingDevil(flyingDevils[flyingDevilsCounter])
 		spawnTimer = 0
 	end	
@@ -176,6 +211,7 @@ local function onFrame( )
 	elseif left == true or right == true then
 		speed = speed
 	end
+	print(speed)
 
 	leftSide.rotation = leftSide.rotation + speed
 	rightSide.rotation = rightSide.rotation + speed
@@ -184,6 +220,10 @@ local function onFrame( )
 		middleBar.rotation = 0
 		leftSide.rotation = 135
 		rightSide.rotation = -135
+	elseif leftSide.rotation > 135 then
+		middleBar.rotation = 0
+		leftSide.rotation = -224.9
+		rightSide.rotation = -494.9
 	end
 	moon.rotation = moon.rotation +speed
 
@@ -202,6 +242,9 @@ local function onFrame( )
 		gravityX = (leftSide.rotation + 225) / 9
 	end
 
+	print("rotation: " .. leftSide.rotation)
+	print("gX: " .. gravityX)
+	print("gY: " .. gravityY)
 	physics.setGravity(gravityX, gravityY)
 
 	gravityY = nil
@@ -215,12 +258,8 @@ local function onFrame( )
 
 	local hits = particleSystem:rayCast( world.x, world.y  -180, world.x+20, world.y -220 )
 	if hits then
-		print ("auauauauau")
-
 		drawHitLine( hit )
 	else
-
-		print ("alles gut")
 	end
 end
 
@@ -240,21 +279,6 @@ function scene:create( event )
 	physics.start()
 	physics.setGravity( 0, 0)
 	physics.setDrawMode( "normal" )
-
-	-- local devilIdleSheetOptions = {
-	--     width = 60,
-	--     height = 75,
-	--     numFrames = 6,
-	--     sheetContentWidth = 360,
-	--     sheetContentHeight = 75
-	-- }
-
-	-- local devilIdleSequence = {
-	-- 	{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 }
-	-- }
-
-	-- local devilIdleSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_spritesheet.png", devilIdleSheetOptions )
-
 
 	local background = display.newImageRect( "assets/map/background.png", display.contentWidth, display.contentHeight )
 	background.x = display.contentCenterX
