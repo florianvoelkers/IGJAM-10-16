@@ -509,7 +509,6 @@ local function onFrame( )
 				if devils[k].fireOn then
 					fireWorld.hits = fireWorld.hits + 0.00002
 					fireWorld.alpha = fireWorld.hits
-					print ("alpha",fireWorld.alpha)
 					if fireWorld.alpha > 0.15 and fireWorld.alpha < 0.2 then
 						world:setSequence( "stage2" )
 					elseif fireWorld.alpha > 0.35 and fireWorld.alpha < 0.5 then
@@ -522,7 +521,6 @@ local function onFrame( )
 
 
 					if fireWorld.alpha > 0.99  then
-						print ("go to end")
 						if goToEnd == false then
 							goToEnd = true
 							for k,v in pairs(devils) do
