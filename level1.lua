@@ -24,6 +24,7 @@ local rightSide
 local middleBar
 local devilIdle
 local particleSystem
+local ray = {}
 
 
 --------------------------------------------
@@ -36,7 +37,7 @@ local screenW, screenH, halfW = display.contentWidth, display.contentHeight, dis
 
 local pressedTimer = 0
 local spawnTimer = 0
-local spawnAfter = 120
+local spawnAfter = 300
 local devilsCounter = 0
 local flyingDevilsCounter = 0
 
@@ -131,6 +132,7 @@ end
 local function setDevil()
 	devilsCounter = devilsCounter + 1
 	devils[devilsCounter] = createDevil()
+	devils[devilsCounter].hp = 50
 	sceneGroup:insert(devils[devilsCounter])
 	devils[devilsCounter]:setSequence( "devilIdle" )
 	devils[devilsCounter]:play()
@@ -157,24 +159,20 @@ local function spawnDevil (event)
 end
 
 
-
-
-
--- Function to draw new line to the hit point
-local drawHitLine = function( hit )
-	--draw a line to the hit
-	ray = display.newLine(world.x, world.y  -200, world.x+20, world.y -220)
-
+local drawHitLine = function( x1,y1,x2,y2)
+	ray[#ray+1] = display.newLine(x1,y1,x2,y2)
 end
 
 
 
 local function onFrame( )
 	if 	left == false and right == false and (speed > 0 or speed < 0) then
-		if speed >0 then
+		if speed >0.01 then
 			speed = speed -0.01
-		else
+		elseif speed < - 0.01 then
 			speed = speed +0.01
+		else
+			speed = 0
 		end
 	elseif left == true and right == false and speed < 0.5 then
 		speed = speed + 0.01
@@ -217,18 +215,53 @@ local function onFrame( )
 
 
 	------------------------------------------------------------
-	display.remove( ray ) ; ray = nil
-
-
-	local hits = particleSystem:rayCast( world.x, world.y  -180, world.x+20, world.y -220 )
-	if hits then
-		print ("auauauauau")
-
-		drawHitLine( hit )
-	else
-
-		print ("alles gut")
+	for i = 1,#ray do
+		display.remove( ray[i] ) ; ray[i] = nil
 	end
+
+	local hits = {}
+	local toDelete = {}
+	for k,v in pairs(devils) do
+		if devils[k] then
+			if devils[k].rotation then
+				angle = devils[k].rotation - 90
+				x = world.x + (world.width/2 * math.cos(math.rad(angle)))
+				y = world.y + (world.width/2 * math.sin(math.rad(angle)))
+				if devils[k].rotation > 180 and devils[k].rotation < 270 then
+					devils[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
+				elseif devils[k].rotation > 0 and devils[k].rotation < 90  then
+					devils[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
+				else
+					devils[k].hit = particleSystem:rayCast( x-20, y-20, x+20, y+20 )
+				end
+
+				if devils[k].hit then
+					print ("auauauauau")
+					--print ("auauauauau")
+					if devils[k].isVisible then
+						devils[k].hp = devils[k].hp - 1
+						if devils[k].hp < 1 then
+							print ("remove")
+							devils[k].isVisible = false
+							table.remove(devils, k)
+						end
+					end
+				else
+					-- if devils[k].rotation > 180 and devils[k].rotation < 270 then
+					-- 	drawHitLine( x-20, y+20, x+20, y-20 )
+					-- elseif devils[k].rotation > 0 and devils[k].rotation < 90  then
+					-- 	drawHitLine( x-20, y+20, x+20, y-20 )
+					-- else
+					-- 	drawHitLine( x-20, y-20, x+20, y+20 )
+					-- end
+				end
+			end
+		end
+	end
+
+	local hits = nil
+	local toDelete = nil
+
 end
 
 
@@ -247,21 +280,6 @@ function scene:create( event )
 	physics.start()
 	physics.setGravity( 0, 0)
 	physics.setDrawMode( "normal" )
-
-	-- local devilIdleSheetOptions = {
-	--     width = 60,
-	--     height = 75,
-	--     numFrames = 6,
-	--     sheetContentWidth = 360,
-	--     sheetContentHeight = 75
-	-- }
-
-	-- local devilIdleSequence = {
-	-- 	{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 }
-	-- }
-
-	-- local devilIdleSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_spritesheet.png", devilIdleSheetOptions )
-
 
 	local background = display.newImageRect( "assets/concept_size.png", display.contentWidth, display.contentHeight )
 	background.x = display.contentCenterX
@@ -356,12 +374,8 @@ function scene:show( event )
 	local phase = event.phase
 	
 	if phase == "will" then
-		-- Called when the scene is still off screen and is about to move on screen
 	elseif phase == "did" then
-		-- Called when the scene is now on screen
-		-- 
-		-- INSERT code here to make the scene come alive
-		-- e.g. start timers, begin animation, play audio, etc.
+
 		physics.start()
 	end
 end
@@ -374,22 +388,16 @@ function scene:hide( event )
 	local phase = event.phase
 	
 	if event.phase == "will" then
-		-- Called when the scene is on screen and is about to move off screen
-		--
-		-- INSERT code here to pause the scene
-		-- e.g. stop timers, stop animation, unload sounds, etc.)
+
 		physics.stop()
 	elseif phase == "did" then
-		-- Called when the scene is now off screen
+
 	end	
 	
 end
 
 function scene:destroy( event )
-	-- Called prior to the removal of scene's "view" (sceneGroup)
-	-- 
-	-- INSERT code here to cleanup the scene
-	-- e.g. remove display objects, remove touch listeners, save state, etc.
+
 	local sceneGroup = self.view
 	
 	--package.loaded[physics] = nil
