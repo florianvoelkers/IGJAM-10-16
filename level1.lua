@@ -103,6 +103,7 @@ local explosionSheet = graphics.newImageSheet( "assets/map/explosion/explosion_s
 local devilIdleFireSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_fire_spritesheet.png", devilIdleSheetOptions )
 local fireBurnSheet = graphics.newImageSheet( "assets/map/fire/fire_small_spritesheet.png", fireBurnSheetOptions)
 
+
 local function onMove (event)
 	pressedTimer = pressedTimer + 1
 end
@@ -161,14 +162,15 @@ local function createFire( angle )
 	fires[#fires].x, fires[#fires].y = world.x, world.y
 	fires[#fires].anchorX, fires[#fires].anchorY = 0.4, 2.5
 	if math.random( ) == 1 then
-		fireAngle = fireAngle - 12
+		fireAngle = fireAngle - 10
 	else
-		fireAngle = fireAngle +12
+		fireAngle = fireAngle +10
 	end
 	fires[#fires].rotation = fireAngle
 	fires[#fires]:setSequence( "fireBurn" )
 	fires[#fires]:play()
 	fires[#fires].fireCounter = math.random( 300,400 )
+	fires[#fires].hp = 50
 	sceneGroup:insert(fires[#fires])
 end
 
@@ -184,7 +186,6 @@ local function createDevil(rotation)
 end
 
 local function setDevil(rotation)
-	print( rotation )
 	devilsCounter = devilsCounter + 1
 	devils[devilsCounter] = createDevil(rotation)
 	devils[devilsCounter].hp = 100
@@ -353,10 +354,34 @@ local function onFrame( )
 
 	for k,v in pairs (fires) do
 		fires[k].fireCounter =fires[k].fireCounter -1
-		if fires[k].fireCounter < 0 then
-			fires[k].fireCounter = math.random(200,300)
-			print ("neues feuer aus feuer", k)
+		fireWorld.hits = fireWorld.hits + 0.00001
+		if fires[k].fireCounter == 0 then
+			fires[k].fireCounter = math.random(300,400)
 			createFire(fires[k].rotation)
+		end
+
+		angle = fires[k].rotation - 90
+		x = world.x + (world.width/2 * math.cos(math.rad(angle)))
+		y = world.y + (world.width/2 * math.sin(math.rad(angle)))
+		if fires[k].rotation > 180 and fires[k].rotation < 270 then
+			fires[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
+		elseif fires[k].rotation > 0 and fires[k].rotation < 90  then
+			fires[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
+		else
+			fires[k].hit = particleSystem:rayCast( x-20, y-20, x+20, y+20 )
+		end
+
+		if fires[k].hit then
+			print ("fire hit")
+			if fires[k].isVisible then
+				fires[k].hp = fires[k].hp - 1
+				if fires[k].hp < 1 then
+					fires[k].isVisible = false
+					table.remove(fires, k)
+					score = score+0.5
+					print ("score:",score)
+				end
+			end
 		end
 	end
 
@@ -365,7 +390,7 @@ local function onFrame( )
 			if devils[k].rotation then
 				if devils[k].fireOn then
 					if fireWorld.alpha < 1 then
-						fireWorld.hits = fireWorld.hits + 0.0001
+						fireWorld.hits = fireWorld.hits + 0.00002
 						--fireWorld.hits = fireWorld.hits + 0.02*#devils
 						fireWorld.alpha = fireWorld.hits
 					elseif fireWorld.alpha > 0.98  then
@@ -390,7 +415,6 @@ local function onFrame( )
 						devils[k]:play()
 						devils[k].fireCounter = math.random(100,200)
 					elseif devils[k].fireCounter <= 0 and  devils[k].fireOn then
-						print ("create fire dämon")
 						createFire(devils[k].rotation)
 						devils[k]:setSequence( "devilIdle" )
 						devils[k]:play()
