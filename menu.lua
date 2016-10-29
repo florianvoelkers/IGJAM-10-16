@@ -296,7 +296,7 @@ function scene:hide( event )
 	local phase = event.phase
 	
 	if event.phase == "will" then
-		physics.stop()
+		--physics.stop()
 	elseif phase == "did" then
 		-- Called when the scene is now off screen
 	end	

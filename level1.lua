@@ -35,9 +35,13 @@ local fireCounter
 local fires
 local steams
 
+local deamonDieSound
+local flameDieSound
+
 local background1
 local background2
 local background3
+local clouds
 
 
 --------------------------------------------
@@ -113,6 +117,15 @@ local earthDestructionOptions = {
     sheetContentHeight = 350
 }
 
+local cloudSheetOptions = {
+    width = 350,
+    height = 350,
+    numFrames = 11,
+    sheetContentWidth = 3850,
+    sheetContentHeight = 350
+}
+
+
 
 
 local devilIdleSequence = {
@@ -149,6 +162,10 @@ local earthDestructionSequence = {
 	{name = "stage5", frames = {5}}
 }
 
+local cloudSheetSequence = {
+	{name = "cloudMove", frames = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, time = 2500}
+}
+
 local devilFlySheet = graphics.newImageSheet( "assets/character/spritesheets/devil_fly_cube.png", devilFlySheetOptions)
 local explosionSheet = graphics.newImageSheet( "assets/map/explosion/explosion_spritesheet.png", explosionSheetOptions)
 local devilIdleFireSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_fire_spritesheet.png", devilIdleSheetOptions )
@@ -156,6 +173,7 @@ local fireBurnSheet = graphics.newImageSheet( "assets/map/fire/fire_small_sprite
 local waterSteamSheet = graphics.newImageSheet( "assets/character/spritesheets/wasserdampf/wasserdampf_spritesheet.png", waterSteamSheetOptions)
 local develDieSheet = graphics.newImageSheet( "assets/character/spritesheets/dying/deathanim_devil_spritesheet.png", devilDieSheetOptions)
 local earthDestructionSheet = graphics.newImageSheet("assets/map/earth_destruction_sheet.png", earthDestructionOptions)
+local cloudSheet = graphics.newImageSheet("assets/map/clouds/clouds_spritesheet.png", cloudSheetOptions)
 
 
 
@@ -337,6 +355,7 @@ local function setOfExplosion(devilObject, otherObject)
 	sceneGroup:insert(explosion)
 	explosion:setSequence( "explosion" )
 	explosion:play()
+	audio.play(landingSound)
 	explosion:addEventListener( "sprite", explosionListener )
 	devilObject:removeSelf()
 	devilObject = nil
@@ -424,10 +443,19 @@ local function onFrame( )
 		else
 			speed = 0
 		end
+		if clouds.isPlaying then
+			clouds:pause()
+		end
 	elseif left == true and right == false and speed < maxspeed then
 		speed = speed + 0.008
+		if not clouds.isPlaying then
+			clouds:play()
+		end
 	elseif left == false and right == true and speed > -maxspeed then
 		speed = speed - 0.008
+		if not clouds.isPlaying then
+			clouds:play()
+		end
 	elseif left == true or right == true then
 		speed = speed
 	end
@@ -496,6 +524,7 @@ local function onFrame( )
 				fires[k].hp = fires[k].hp - 1
 				if fires[k].hp == 5 then
 					createSteam(fires[k].rotation)
+					audio.play(flameDieSound)
 				elseif fires[k].hp < 1 then
 					fires[k].isVisible = false
 					table.remove(fires, k)
@@ -592,21 +621,23 @@ local function onFrame( )
 							if devils[k].hp == 10 then
 								createSteam(devils[k].rotation)
 							elseif devils[k].hp == 1 then
+								audio.play(deamonDieSound)
 								dieDevilDie(devils[k])
 								devils[k].isVisible = false
 								table.remove(devils, k)
 								scorePoints = scorePoints + 1
 								print ("score:",scorePoints)
+
 							end
+						else
+							-- if devils[k].rotation > 180 and devils[k].rotation < 270 then
+							-- 	drawHitLine( x-20, y+20, x+20, y-20 )
+							-- elseif devils[k].rotation > 0 and devils[k].rotation < 90  then
+							-- 	drawHitLine( x-20, y+20, x+20, y-20 )
+							-- else
+							-- 	drawHitLine( x-20, y-20, x+20, y+20 )
+							-- end
 						end
-					else
-						-- if devils[k].rotation > 180 and devils[k].rotation < 270 then
-						-- 	drawHitLine( x-20, y+20, x+20, y-20 )
-						-- elseif devils[k].rotation > 0 and devils[k].rotation < 90  then
-						-- 	drawHitLine( x-20, y+20, x+20, y-20 )
-						-- else
-						-- 	drawHitLine( x-20, y-20, x+20, y+20 )
-						-- end
 					end
 				end
 			end
@@ -626,6 +657,15 @@ function scene:create( event )
 	goToEnd = false
 	fires = {}
 	steams = {}
+	deamonDieSound = audio.loadSound( "assets/sound/effects/dmonDie.wav" )
+	flameDieSound = audio.loadSound( "assets/sound/effects/flameDie.wav" )
+	landingSound = audio.loadSound( "assets/sound/effects/landingDmon.wav" )
+	musik = audio.loadSound("assets/sound/music/theme.mp3")
+	local optionsSound ={loops = -1}
+	audio.play(musik, optionsSound)
+
+
+	audio.setVolume( 0.5 ) 
 
 	sceneGroup = self.view
 
@@ -683,8 +723,16 @@ function scene:create( event )
 	fireWorld.x = display.contentCenterX
 	fireWorld.y = display.contentCenterY
 	fireWorld.alpha = 0
-
 	fireWorld.hits = 0
+
+	clouds = display.newSprite( cloudSheet, cloudSheetSequence)
+	clouds:setSequence( "cloudMove" )
+	--clouds:play()
+	clouds.x = display.contentCenterX
+	clouds.y = display.contentCenterY
+	worldGroup:insert(clouds)
+
+
 
 
 	leftSide = display.newRect( worldGroup, world.x,world.y, 600, 90 )
