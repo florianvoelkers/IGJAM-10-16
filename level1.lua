@@ -182,10 +182,13 @@ local function onKeyEvent (event)
 		end
 	elseif event.keyName == "escape" then
 		physics.stop( )
-		composer.gotoScene( "end" )
 		Runtime:removeEventListener( "key", onKeyEvent )
-		composer.removeHidden() 
-		composer.removeScene( "level1" )
+		timer.performWithDelay( 5000, function (...)
+			composer.gotoScene( "end" )
+			composer.removeHidden() 
+			composer.removeScene( "level1" )
+		end )
+		
 	end
 end
 
@@ -521,6 +524,7 @@ local function onFrame( )
 
 
 					if fireWorld.alpha > 0.99  then
+						Runtime:removeEventListener( "enterFrame", onFrame )
 						if goToEnd == false then
 							goToEnd = true
 							for k,v in pairs(devils) do
@@ -534,9 +538,21 @@ local function onFrame( )
 							score.set( scorePoints )
 							score.save()
 							display.remove( particleSystem )
-							composer.gotoScene( "end","fade",100)
-							composer.removeHidden( )
-							composer.removeScene("level1")
+							Runtime:removeEventListener( "key", onKeyEvent )
+							Runtime:removeEventListener( "enterFrame", onMove)
+							Runtime:removeEventListener( "enterFrame", spawnDevil)
+							print("Game Over")
+							local gameOver = display.newImageRect( "assets/gameOver.png", display.contentWidth, display.contentHeight )
+							gameOver.x, gameOver.y = display.contentCenterX, display.contentCenterY
+							transition.blink( gameOver, {time = 500} )
+							timer.performWithDelay( 5000, function (...)
+								gameOver:removeSelf( )
+								gameOver = nil
+								composer.gotoScene( "end","fade",100)
+								composer.removeHidden( )
+								composer.removeScene("level1")
+							end )
+							
 						end
 					end
 				end
@@ -557,40 +573,41 @@ local function onFrame( )
 						end
 					end
 				end
-
-				angle = devils[k].rotation - 90
-				x = world.x + (world.width/2 * math.cos(math.rad(angle)))
-				y = world.y + (world.width/2 * math.sin(math.rad(angle)))
-				if devils[k].rotation > 180 and devils[k].rotation < 270 then
-					devils[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
-				elseif devils[k].rotation > 0 and devils[k].rotation < 90  then
-					devils[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
-				else
-					devils[k].hit = particleSystem:rayCast( x-20, y-20, x+20, y+20 )
-				end
-
-				if devils[k].hit then
-					if devils[k].isVisible then
-						devils[k].hp = devils[k].hp - 1
-						print(devils[k].hp)
-						if devils[k].hp == 10 then
-							createSteam(devils[k].rotation)
-						elseif devils[k].hp == 1 then
-							dieDevilDie(devils[k])
-							devils[k].isVisible = false
-							table.remove(devils, k)
-							scorePoints = scorePoints + 1
-							print ("score:",scorePoints)
-						end
+				if not goToEnd then
+					angle = devils[k].rotation - 90
+					x = world.x + (world.width/2 * math.cos(math.rad(angle)))
+					y = world.y + (world.width/2 * math.sin(math.rad(angle)))
+					if devils[k].rotation > 180 and devils[k].rotation < 270 then
+						devils[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
+					elseif devils[k].rotation > 0 and devils[k].rotation < 90  then
+						devils[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
+					else
+						devils[k].hit = particleSystem:rayCast( x-20, y-20, x+20, y+20 )
 					end
-				else
-					-- if devils[k].rotation > 180 and devils[k].rotation < 270 then
-					-- 	drawHitLine( x-20, y+20, x+20, y-20 )
-					-- elseif devils[k].rotation > 0 and devils[k].rotation < 90  then
-					-- 	drawHitLine( x-20, y+20, x+20, y-20 )
-					-- else
-					-- 	drawHitLine( x-20, y-20, x+20, y+20 )
-					-- end
+
+					if devils[k].hit then
+						if devils[k].isVisible then
+							devils[k].hp = devils[k].hp - 1
+							print(devils[k].hp)
+							if devils[k].hp == 10 then
+								createSteam(devils[k].rotation)
+							elseif devils[k].hp == 1 then
+								dieDevilDie(devils[k])
+								devils[k].isVisible = false
+								table.remove(devils, k)
+								scorePoints = scorePoints + 1
+								print ("score:",scorePoints)
+							end
+						end
+					else
+						-- if devils[k].rotation > 180 and devils[k].rotation < 270 then
+						-- 	drawHitLine( x-20, y+20, x+20, y-20 )
+						-- elseif devils[k].rotation > 0 and devils[k].rotation < 90  then
+						-- 	drawHitLine( x-20, y+20, x+20, y-20 )
+						-- else
+						-- 	drawHitLine( x-20, y-20, x+20, y+20 )
+						-- end
+					end
 				end
 			end
 		end
@@ -754,10 +771,7 @@ end
 
 function scene:hide( event )
 	local sceneGroup = self.view
-	Runtime:removeEventListener( "key", onKeyEvent )
-	Runtime:removeEventListener( "enterFrame", onMove)
-	Runtime:removeEventListener( "enterFrame", spawnDevil)
-	Runtime:removeEventListener( "enterFrame", onFrame )
+	
 	local phase = event.phase
 	
 	if event.phase == "will" then

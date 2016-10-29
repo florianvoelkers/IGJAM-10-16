@@ -28,6 +28,9 @@ local speed
 local maxspeed
 local leftTouchArea
 local rightTouchArea
+local background1
+local background2
+local background3
 
 local sceneNotCalled = true
 
@@ -54,6 +57,20 @@ local function onTouchRight(event)
 end
 
 local function onFrame(event)
+	background1.x = background1.x -0.5
+	background2.x = background2.x -0.5
+	background3.x = background3.x -0.5
+
+	if background1.x < -display.contentCenterX then
+		background1.x = 2*display.contentCenterX
+	end
+	if background2.x < -display.contentCenterX then
+		background2.x = 2*display.contentCenterX
+	end
+	if background3.x < -display.contentCenterX then
+		background3.x = 2*display.contentCenterX
+	end
+
 	if 	left == false and right == false and (speed > 0 or speed < 0) then
 		if speed >0.01 then
 			speed = speed -0.005
@@ -152,9 +169,22 @@ function scene:create( event )
 	physics.setGravity( 0, 0)
 	physics.setDrawMode( "normal" )
 
-	local background = display.newImageRect( "assets/map/background.png", display.contentWidth, display.contentHeight )
-	background.x = display.contentCenterX
-	background.y = display.contentCenterY
+	background1 = display.newImageRect( "assets/map/background/1.png", display.contentWidth, display.contentHeight )
+	background1.x = display.contentCenterX
+	background1.y = display.contentCenterY
+
+
+	background2 = display.newImageRect( "assets/map/background/2.png", display.contentWidth, display.contentHeight )
+	background2.x = display.contentCenterX*2
+	background2.y = display.contentCenterY
+
+	background3 = display.newImageRect( "assets/map/background/3.png", display.contentWidth, display.contentHeight )
+	background3.x = display.contentCenterX*3
+	background3.y = display.contentCenterY
+	
+	sceneGroup:insert( background1 )
+	sceneGroup:insert( background2 )
+	sceneGroup:insert( background3 )
 
 	world = display.newImageRect("assets/map/earth.png", 346, 346 )
 	world.x = display.contentCenterX
@@ -239,7 +269,6 @@ function scene:create( event )
 	rightTouchArea:addEventListener( "touch", onTouchRight )
 
 	-- all display objects must be inserted into group
-	sceneGroup:insert( background )
 	sceneGroup:insert( titleLogo )
 	sceneGroup:insert( world )
 	sceneGroup:insert( playButton)
