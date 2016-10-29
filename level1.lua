@@ -28,6 +28,8 @@ local ray = {}
 local fireWorld
 local score
 local goToEnd
+local fireCounter
+local fires = {}
 
 
 --------------------------------------------
@@ -61,6 +63,15 @@ local devilSummonSheetOptions = {
 }
 
 
+local fireBurnSheetOptions = {
+    width = 80,
+    height = 100,
+    numFrames = 5,
+    sheetContentWidth = 400,
+    sheetContentHeight = 100
+}
+
+
 local devilIdleSequence = {
 	{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 },
 	{name = "devilFire", frames = { 7,8,9,10 }, time = 1600 }
@@ -71,10 +82,18 @@ local devilSummonSequence = {
 	{name = "devilSummon", frames = {1, 2}, time = 500}
 }
 
+local fireBurnSequence = {
+	{name = "fireBurn", frames = {1, 2,3,4,5}, time = 1600}
+}
+
+
+
+
 
 
 local devilIdleFireSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_fire_spritesheet.png", devilIdleSheetOptions )
 local devilSummonSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_flying_spritesheet.png", devilSummonSheetOptions)
+local fireBurnSheet = graphics.newImageSheet( "assets/map/fire/fire_small_spritesheet.png", fireBurnSheetOptions)
 
 local function onMove (event)
 	pressedTimer = pressedTimer + 1
@@ -125,6 +144,24 @@ local function onTouchRight(event)
 		left = false
 		right = false
 	end
+end
+
+local function createFire( angle )
+	local fireAngle = angle
+	fires[#fires+1] = {}
+	fires[#fires] = display.newSprite( fireBurnSheet, fireBurnSequence )
+	fires[#fires].x, fires[#fires].y = world.x, world.y
+	fires[#fires].anchorX, fires[#fires].anchorY = 0.4, 2.5
+	if math.random( ) == 1 then
+		fireAngle = fireAngle - 12
+	else
+		fireAngle = fireAngle +12
+	end
+	fires[#fires].rotation = fireAngle
+	fires[#fires]:setSequence( "fireBurn" )
+	fires[#fires]:play()
+	fires[#fires].fireCounter = math.random( 300,400 )
+	sceneGroup:insert(fires[#fires])
 end
 
 
@@ -228,6 +265,16 @@ local function onFrame( )
 		display.remove( ray[i] ) ; ray[i] = nil
 	end
 
+
+	for k,v in pairs (fires) do
+		fires[k].fireCounter =fires[k].fireCounter -1
+		if fires[k].fireCounter < 0 then
+			fires[k].fireCounter = math.random(200,300)
+			print ("neues feuer aus feuer", k)
+			createFire(fires[k].rotation)
+		end
+	end
+
 	for k,v in pairs(devils) do
 		if devils[k] then
 			if devils[k].rotation then
@@ -250,17 +297,19 @@ local function onFrame( )
 						end
 					end
 				end
-				devils[k].fireCounter = devils[k].fireCounter - 1
-				if devils[k].fireCounter < 0 and  devils[k].fireOn == false then
-					devils[k].fireOn = true
-					devils[k]:setSequence( "devilFire" )
-					devils[k]:play()
-					devils[k].fireCounter = math.random(200,300)
-				elseif devils[k].fireCounter < 0 and  devils[k].fireOn then
-					devils[k].fireOn = false
-					devils[k]:setSequence( "devilIdle" )
-					devils[k]:play()
-					devils[k].fireCounter = math.random(200,300)
+				if devils[k].fireCounter >= 1 then
+					devils[k].fireCounter = devils[k].fireCounter - 1
+					if devils[k].fireCounter <= 0 and  devils[k].fireOn == false then
+						devils[k].fireOn = true
+						devils[k]:setSequence( "devilFire" )
+						devils[k]:play()
+						devils[k].fireCounter = math.random(100,200)
+					elseif devils[k].fireCounter <= 0 and  devils[k].fireOn then
+						print ("create fire dämon")
+						createFire(devils[k].rotation)
+						devils[k]:setSequence( "devilIdle" )
+						devils[k]:play()
+					end
 				end
 
 				angle = devils[k].rotation - 90
