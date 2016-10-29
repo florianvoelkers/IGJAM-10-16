@@ -98,6 +98,17 @@ local devilDieSheetOptions = {
     sheetContentHeight = 75
 }
 
+
+local earthDestructionOptions = {
+    width = 350,
+    height = 350,
+    numFrames = 5,
+    sheetContentWidth = 1750,
+    sheetContentHeight = 350
+}
+
+
+
 local devilIdleSequence = {
 	{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 },
 	{name = "devilFire", frames = { 7,8,9,10 }, time = 1600 }
@@ -119,8 +130,17 @@ local waterSteamSequence = {
 	{name = "waterSteam", frames = {1, 2,3,4,5,6,7}, time = 1800}
 }
 
+
 local develDieSequence = {
 	{name = "dieDevilDie", frames = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}, time = 1400, loopCount = 1}
+}
+
+local earthDestructionSequence = {
+	{name = "stage1", frames = {1}},
+	{name = "stage2", frames = {2}},
+	{name = "stage3", frames = {3}},
+	{name = "stage4", frames = {4}},
+	{name = "stage5", frames = {5}}
 }
 
 local devilFlySheet = graphics.newImageSheet( "assets/character/spritesheets/devil_fly_cube.png", devilFlySheetOptions)
@@ -129,6 +149,8 @@ local devilIdleFireSheet = graphics.newImageSheet( "assets/character/spritesheet
 local fireBurnSheet = graphics.newImageSheet( "assets/map/fire/fire_small_spritesheet.png", fireBurnSheetOptions)
 local waterSteamSheet = graphics.newImageSheet( "assets/character/spritesheets/wasserdampf/wasserdampf_spritesheet.png", waterSteamSheetOptions)
 local develDieSheet = graphics.newImageSheet( "assets/character/spritesheets/dying/deathanim_devil_spritesheet.png", devilDieSheetOptions)
+local earthDestructionSheet = graphics.newImageSheet("assets/map/earth_destruction_sheet.png", earthDestructionOptions)
+
 
 
 local function onMove (event)
@@ -460,7 +482,19 @@ local function onFrame( )
 				if devils[k].fireOn then
 					fireWorld.hits = fireWorld.hits + 0.00002
 					fireWorld.alpha = fireWorld.hits
-					if fireWorld.alpha > 0.98  then
+					print ("alpha",fireWorld.alpha)
+					if fireWorld.alpha > 0.15 and fireWorld.alpha < 0.2 then
+						world:setSequence( "stage2" )
+					elseif fireWorld.alpha > 0.35 and fireWorld.alpha < 0.5 then
+						world:setSequence( "stage3" )
+					elseif fireWorld.alpha > 0.50 and fireWorld.alpha < 0.60 then
+						world:setSequence( "stage4" )
+					elseif fireWorld.alpha > 0.75 and fireWorld.alpha < 0.80 then
+						world:setSequence( "stage5" )
+					end
+
+
+					if fireWorld.alpha > 0.99  then
 						print ("go to end")
 						if goToEnd == false then
 							goToEnd = true
@@ -564,19 +598,24 @@ function scene:create( event )
 	earth2.x, earth2.y = display.contentCenterX, display.contentCenterY
 	earth2.myName = "earth2"
 	physics.addBody( earth2, "static", { radius = 150, isSensor = true})
+	earth2.alpha = 0
 
-	world = display.newImageRect( worldGroup, "assets/map/earth.png", 346, 346 )
+	world = display.newSprite( earthDestructionSheet, earthDestructionSequence)
+	world:setSequence( "stage1" )
+	world:play()
 	world.x = display.contentCenterX
 	world.y = display.contentCenterY
 	world.myName = "world"
+	worldGroup:insert(world)
 	physics.addBody( world, "static",{radius=178}  )
+
 
 	moon = display.newImageRect( worldGroup, "assets/map/moon.png", 123, 123 )
 	moon.x,moon.y = world.x,world.y
 	moon.anchorX = 0.5
 	moon.anchorY = -2.3
 
-	fireWorld = display.newImageRect( worldGroup, "assets/world_fire_dummy.png", 350, 350 )
+	fireWorld = display.newImageRect( worldGroup, "assets/map/earth_shadow.png", 355, 355 )
 	fireWorld.x = display.contentCenterX
 	fireWorld.y = display.contentCenterY
 	fireWorld.alpha = 0
