@@ -90,6 +90,13 @@ local waterSteamSheetOptions = {
     sheetContentHeight = 80
 }
 
+local devilDieSheetOptions = {
+	width = 60,
+    height = 75,
+    numFrames = 14,
+    sheetContentWidth = 840,
+    sheetContentHeight = 75
+}
 
 local devilIdleSequence = {
 	{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 },
@@ -112,11 +119,16 @@ local waterSteamSequence = {
 	{name = "waterSteam", frames = {1, 2,3,4,5,6,7}, time = 1800}
 }
 
+local develDieSequence = {
+	{name = "dieDevilDie", frames = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}, time = 1400, loopCount = 1}
+}
+
 local devilFlySheet = graphics.newImageSheet( "assets/character/spritesheets/devil_fly_cube.png", devilFlySheetOptions)
 local explosionSheet = graphics.newImageSheet( "assets/map/explosion/explosion_spritesheet.png", explosionSheetOptions)
 local devilIdleFireSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_fire_spritesheet.png", devilIdleSheetOptions )
 local fireBurnSheet = graphics.newImageSheet( "assets/map/fire/fire_small_spritesheet.png", fireBurnSheetOptions)
 local waterSteamSheet = graphics.newImageSheet( "assets/character/spritesheets/wasserdampf/wasserdampf_spritesheet.png", waterSteamSheetOptions)
+local develDieSheet = graphics.newImageSheet( "assets/character/spritesheets/dying/deathanim_devil_spritesheet.png", devilDieSheetOptions)
 
 
 local function onMove (event)
@@ -147,8 +159,6 @@ local function onKeyEvent (event)
 		composer.removeScene( "level1" )
 	end
 end
-
-
 
 local function onTouchLeft(event)
 	if event.phase == "began" then
@@ -333,6 +343,26 @@ local drawHitLine = function( x1,y1,x2,y2)
 	ray[#ray+1] = display.newLine(x1,y1,x2,y2)
 end
 
+local function onDevilDeadListener(event)
+	if event.phase == "ended" then
+		print("he dead")
+		event.target:removeSelf()
+		event.target = nil
+	end
+end
+
+local function dieDevilDie (devil)
+	print("die")
+	local dyingDevil = display.newSprite( develDieSheet, develDieSequence )
+	dyingDevil.x, dyingDevil.y = devil.x, devil.y
+	dyingDevil.anchorX, dyingDevil.anchorY = devil.anchorX, devil.anchorY
+	dyingDevil.rotation = devil.rotation
+	sceneGroup:insert(dyingDevil)
+	dyingDevil:setSequence( "dieDevilDie" )
+	dyingDevil:play()
+	dyingDevil:addEventListener( "sprite", onDevilDeadListener )
+end
+
 local function onFrame( )
 	if 	left == false and right == false and (speed > 0 or speed < 0) then
 		if speed >0.01 then
@@ -472,12 +502,14 @@ local function onFrame( )
 				if devils[k].hit then
 					if devils[k].isVisible then
 						devils[k].hp = devils[k].hp - 1
+						print(devils[k].hp)
 						if devils[k].hp == 10 then
 							createSteam(devils[k].rotation)
-						elseif devils[k].hp < 1 then
+						elseif devils[k].hp == 1 then
+							dieDevilDie(devils[k])
 							devils[k].isVisible = false
 							table.remove(devils, k)
-							score = score+1
+							score = score + 1
 							print ("score:",score)
 						end
 					end
