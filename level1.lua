@@ -29,6 +29,8 @@ local ray = {}
 local fireWorld
 local score
 local goToEnd
+local fireCounter
+local fires = {}
 
 
 --------------------------------------------
@@ -48,8 +50,8 @@ local flyingDevilsCounter = 0
 local devilIdleSheetOptions = {
     width = 60,
     height = 75,
-    numFrames = 6,
-    sheetContentWidth = 360,
+    numFrames = 10,
+    sheetContentWidth = 600,
     sheetContentHeight = 75
 }
 
@@ -69,8 +71,20 @@ local explosionSheetOptions = {
     sheetContentHeight = 60
 }
 
+
+local fireBurnSheetOptions = {
+    width = 80,
+    height = 100,
+    numFrames = 5,
+    sheetContentWidth = 400,
+    sheetContentHeight = 100
+}
+
+
 local devilIdleSequence = {
-	{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 }
+	{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 },
+	{name = "devilFire", frames = { 7,8,9,10 }, time = 1600 }
+
 }
 
 local devilFlySequence = {
@@ -80,10 +94,14 @@ local devilFlySequence = {
 local explosionSequence = {
 	{name = "explosion", frames = {1, 2, 3, 4, 5, 6}, time = 1200, loopCount = 1}
 }
+local fireBurnSequence = {
+	{name = "fireBurn", frames = {1, 2,3,4,5}, time = 1600}
+}
 
-local devilIdleSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_spritesheet.png", devilIdleSheetOptions )
 local devilFlySheet = graphics.newImageSheet( "assets/character/spritesheets/devil_fly_cube.png", devilFlySheetOptions)
 local explosionSheet = graphics.newImageSheet( "assets/map/explosion/explosion_spritesheet.png", explosionSheetOptions)
+local devilIdleFireSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_fire_spritesheet.png", devilIdleSheetOptions )
+local fireBurnSheet = graphics.newImageSheet( "assets/map/fire/fire_small_spritesheet.png", fireBurnSheetOptions)
 
 local function onMove (event)
 	pressedTimer = pressedTimer + 1
@@ -136,9 +154,28 @@ local function onTouchRight(event)
 	end
 end
 
+local function createFire( angle )
+	local fireAngle = angle
+	fires[#fires+1] = {}
+	fires[#fires] = display.newSprite( fireBurnSheet, fireBurnSequence )
+	fires[#fires].x, fires[#fires].y = world.x, world.y
+	fires[#fires].anchorX, fires[#fires].anchorY = 0.4, 2.5
+	if math.random( ) == 1 then
+		fireAngle = fireAngle - 12
+	else
+		fireAngle = fireAngle +12
+	end
+	fires[#fires].rotation = fireAngle
+	fires[#fires]:setSequence( "fireBurn" )
+	fires[#fires]:play()
+	fires[#fires].fireCounter = math.random( 300,400 )
+	sceneGroup:insert(fires[#fires])
+end
+
+
 
 local function createDevil(rotation)
-	local devilIdle = display.newSprite( devilIdleSheet, devilIdleSequence )
+	local devilIdle = display.newSprite( devilIdleFireSheet, devilIdleSequence )
 	devilIdle.x, devilIdle.y = world.x, world.y
 	devilIdle.anchorX, devilIdle.anchorY = 0.4, 3
 	--local randomSpawn = math.random(360)
@@ -147,12 +184,15 @@ local function createDevil(rotation)
 end
 
 local function setDevil(rotation)
+	print( rotation )
 	devilsCounter = devilsCounter + 1
 	devils[devilsCounter] = createDevil(rotation)
 	devils[devilsCounter].hp = 100
 	sceneGroup:insert(devils[devilsCounter])
 	devils[devilsCounter]:setSequence( "devilIdle" )
 	devils[devilsCounter]:play()
+	devils[devilsCounter].fireCounter = math.random( 200,300 )
+	devils[devilsCounter].fireOn = false
 end
 
 local function createFlyingDevil(...)
@@ -310,31 +350,53 @@ local function onFrame( )
 		display.remove( ray[i] ) ; ray[i] = nil
 	end
 
-	if #devils > 0 and fireWorld.alpha < 1 then
-		fireWorld.hits = fireWorld.hits + 0.0001*#devils
-		--fireWorld.hits = fireWorld.hits + 0.02*#devils
-		fireWorld.alpha = fireWorld.hits
-	elseif fireWorld.alpha > 0.98  then
-		print ("go to end")
-		if goToEnd == false then
-			goToEnd = true
-			for k,v in pairs(devils) do
-				table.remove(devils, k)
-			end
-			display.remove( particleSystem )
-			
 
-			composer.gotoScene( "end","fade",500)
-			composer.removeHidden( )
-			composer.removeScene("level1")
+	for k,v in pairs (fires) do
+		fires[k].fireCounter =fires[k].fireCounter -1
+		if fires[k].fireCounter < 0 then
+			fires[k].fireCounter = math.random(200,300)
+			print ("neues feuer aus feuer", k)
+			createFire(fires[k].rotation)
 		end
 	end
 
-	local hits = {}
-	local toDelete = {}
 	for k,v in pairs(devils) do
 		if devils[k] then
 			if devils[k].rotation then
+				if devils[k].fireOn then
+					if fireWorld.alpha < 1 then
+						fireWorld.hits = fireWorld.hits + 0.0001
+						--fireWorld.hits = fireWorld.hits + 0.02*#devils
+						fireWorld.alpha = fireWorld.hits
+					elseif fireWorld.alpha > 0.98  then
+						print ("go to end")
+						if goToEnd == false then
+							goToEnd = true
+							for k,v in pairs(devils) do
+								table.remove(devils, k)
+							end
+							display.remove( particleSystem )
+							composer.gotoScene( "end","fade",500)
+							composer.removeHidden( )
+							composer.removeScene("level1")
+						end
+					end
+				end
+				if devils[k].fireCounter >= 1 then
+					devils[k].fireCounter = devils[k].fireCounter - 1
+					if devils[k].fireCounter <= 0 and  devils[k].fireOn == false then
+						devils[k].fireOn = true
+						devils[k]:setSequence( "devilFire" )
+						devils[k]:play()
+						devils[k].fireCounter = math.random(100,200)
+					elseif devils[k].fireCounter <= 0 and  devils[k].fireOn then
+						print ("create fire dämon")
+						createFire(devils[k].rotation)
+						devils[k]:setSequence( "devilIdle" )
+						devils[k]:play()
+					end
+				end
+
 				angle = devils[k].rotation - 90
 				x = world.x + (world.width/2 * math.cos(math.rad(angle)))
 				y = world.y + (world.width/2 * math.sin(math.rad(angle)))
@@ -368,9 +430,6 @@ local function onFrame( )
 			end
 		end
 	end
-
-	local hits = nil
-	local toDelete = nil
 end
 
 
