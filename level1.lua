@@ -50,23 +50,34 @@ local function onKeyEvent (event)
 	end
 end
 
+local left
+local right
+
 local function onTouchLeft(event)
 	if event.phase == "began" then
-		speed = 1.1
+		left = true
+		right = false
 	elseif event.phase == "ended" then
-		speed = 0
+		left = false
+		right = false
 	end
 end
 
 local function onTouchRight(event)
 	if event.phase == "began" then
-		speed = -1.1
+		left = false
+		right = true
 	elseif event.phase == "ended" then
-		speed = 0
+		left = false
+		right = false
 	end
 end
 
 function scene:create( event )
+
+	left = false
+	right = false
+	speed = 0
 
 	-- Called when the scene's view does not exist.
 	-- 
@@ -75,7 +86,7 @@ function scene:create( event )
 
 	local sceneGroup = self.view
 	display.setDefault("isAnchorClamped",false)
-	speed = 0
+	
 
 	-- We need physics started to add bodies, but we don't want the simulaton
 	-- running until the scene is on the screen.
@@ -111,7 +122,7 @@ function scene:create( event )
 
 
 	local leftSide = display.newRect( worldGroup, world.x,world.y, 600, 90 )
-	--leftSide.alpha=0
+	leftSide.alpha=0
 	leftSide.rotation = 135
 	leftSide.anchorX = 0.6
 	leftSide.anchorY = 2.8
@@ -119,12 +130,21 @@ function scene:create( event )
 	physics.addBody( leftSide, "static" )
 
 	local rightSide = display.newRect( worldGroup, world.x,world.y, 600, 90 )
-	--rightSide.alpha=0
+	rightSide.alpha=0
 	rightSide.rotation = -135
 	rightSide.anchorX = 0.4
 	rightSide.anchorY = 2.8
 
 	physics.addBody( rightSide, "static" )
+
+
+	local middleBar = display.newRect(worldGroup, world.x,world.y,600,90)
+	middleBar.alpha=0
+	middleBar.rotation = 0
+	middleBar.anchorX = 0.5
+	middleBar.anchorY = -0.9
+
+	physics.addBody( middleBar, "static" )
 
 	local particleSystem = physics.newParticleSystem{
 		filename = "assets/liquidParticle.png",
@@ -132,7 +152,6 @@ function scene:create( event )
 		imageRadius = 5,
 		gravityScale = 1.0,
 		strictContactCheck = true,
-		dampingStrength = 2
 	}
 
 	-- Create a "block" of water (LiquidFun group)
@@ -141,17 +160,36 @@ function scene:create( event )
 	        flags = { "water" },
 	        x = world.x,
 	        y = world.y+world.height/2 + 4,
-	        --color = { 0.1, 0.1, 1, 0.5 },
-	        halfWidth = 16,
-	        halfHeight = 16
+	        halfWidth = 18,
+	        halfHeight = 18
 	    }
 	)
 
 
 	local function rotateBars( )
+
+		print("links",left,"rechts", right)
+		if 	left == false and right == false and (speed > 0 or speed < 0) then
+			if speed >0 then
+				speed = speed -0.01
+			else
+				speed = speed +0.01
+			end
+		elseif left == true and right == false and speed < 0.5 then
+			speed = speed + 0.01
+		elseif left == false and right == true and speed > -0.5 then
+			speed = speed - 0.01
+		elseif left == true or right == true then
+			speed = speed
+		end
+
+
+
 		leftSide.rotation = leftSide.rotation + speed
 		rightSide.rotation = rightSide.rotation + speed
+		middleBar.rotation = middleBar.rotation + speed
 		if leftSide.rotation < -225 then
+			middleBar.rotation = 0
 			leftSide.rotation = 135
 			rightSide.rotation = -135
 		end
