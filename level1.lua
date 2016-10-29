@@ -47,8 +47,8 @@ local flyingDevilsCounter = 0
 local devilIdleSheetOptions = {
     width = 60,
     height = 75,
-    numFrames = 6,
-    sheetContentWidth = 360,
+    numFrames = 10,
+    sheetContentWidth = 600,
     sheetContentHeight = 75
 }
 
@@ -60,15 +60,20 @@ local devilSummonSheetOptions = {
     sheetContentHeight = 75
 }
 
+
 local devilIdleSequence = {
-	{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 }
+	{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 },
+	{name = "devilFire", frames = { 7,8,9,10 }, time = 1600 }
+
 }
 
 local devilSummonSequence = {
 	{name = "devilSummon", frames = {1, 2}, time = 500}
 }
 
-local devilIdleSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_spritesheet.png", devilIdleSheetOptions )
+
+
+local devilIdleFireSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_fire_spritesheet.png", devilIdleSheetOptions )
 local devilSummonSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_flying_spritesheet.png", devilSummonSheetOptions)
 
 local function onMove (event)
@@ -124,7 +129,7 @@ end
 
 
 local function createDevil(...)
-	local devilIdle = display.newSprite( devilIdleSheet, devilIdleSequence )
+	local devilIdle = display.newSprite( devilIdleFireSheet, devilIdleSequence )
 	devilIdle.x, devilIdle.y = world.x, world.y
 	devilIdle.anchorX, devilIdle.anchorY = 0.4, 3
 	local randomSpawn = math.random(360)
@@ -139,6 +144,8 @@ local function setDevil()
 	sceneGroup:insert(devils[devilsCounter])
 	devils[devilsCounter]:setSequence( "devilIdle" )
 	devils[devilsCounter]:play()
+	devils[devilsCounter].fireCounter = math.random( 200,300 )
+	devils[devilsCounter].fireOn = false
 end
 
 local function createFlyingDevil(...)
@@ -221,31 +228,41 @@ local function onFrame( )
 		display.remove( ray[i] ) ; ray[i] = nil
 	end
 
-	if #devils > 0 and fireWorld.alpha < 1 then
-		fireWorld.hits = fireWorld.hits + 0.0001*#devils
-		--fireWorld.hits = fireWorld.hits + 0.02*#devils
-		fireWorld.alpha = fireWorld.hits
-	elseif fireWorld.alpha > 0.98  then
-		print ("go to end")
-		if goToEnd == false then
-			goToEnd = true
-			for k,v in pairs(devils) do
-				table.remove(devils, k)
-			end
-			display.remove( particleSystem )
-			
-
-			composer.gotoScene( "end","fade",500)
-			composer.removeHidden( )
-			composer.removeScene("level1")
-		end
-	end
-
-	local hits = {}
-	local toDelete = {}
 	for k,v in pairs(devils) do
 		if devils[k] then
 			if devils[k].rotation then
+				if devils[k].fireOn then
+					if fireWorld.alpha < 1 then
+						fireWorld.hits = fireWorld.hits + 0.0001
+						--fireWorld.hits = fireWorld.hits + 0.02*#devils
+						fireWorld.alpha = fireWorld.hits
+					elseif fireWorld.alpha > 0.98  then
+						print ("go to end")
+						if goToEnd == false then
+							goToEnd = true
+							for k,v in pairs(devils) do
+								table.remove(devils, k)
+							end
+							display.remove( particleSystem )
+							composer.gotoScene( "end","fade",500)
+							composer.removeHidden( )
+							composer.removeScene("level1")
+						end
+					end
+				end
+				devils[k].fireCounter = devils[k].fireCounter - 1
+				if devils[k].fireCounter < 0 and  devils[k].fireOn == false then
+					devils[k].fireOn = true
+					devils[k]:setSequence( "devilFire" )
+					devils[k]:play()
+					devils[k].fireCounter = math.random(200,300)
+				elseif devils[k].fireCounter < 0 and  devils[k].fireOn then
+					devils[k].fireOn = false
+					devils[k]:setSequence( "devilIdle" )
+					devils[k]:play()
+					devils[k].fireCounter = math.random(200,300)
+				end
+
 				angle = devils[k].rotation - 90
 				x = world.x + (world.width/2 * math.cos(math.rad(angle)))
 				y = world.y + (world.width/2 * math.sin(math.rad(angle)))
@@ -279,9 +296,6 @@ local function onFrame( )
 			end
 		end
 	end
-
-	local hits = nil
-	local toDelete = nil
 
 end
 
