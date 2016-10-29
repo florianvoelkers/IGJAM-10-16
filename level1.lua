@@ -35,6 +35,9 @@ local fireCounter
 local fires
 local steams
 
+local deamonDieSound
+local flameDieSound
+
 local background1
 local background2
 local background3
@@ -493,6 +496,7 @@ local function onFrame( )
 				fires[k].hp = fires[k].hp - 1
 				if fires[k].hp == 5 then
 					createSteam(fires[k].rotation)
+					audio.play(flameDieSound)
 				elseif fires[k].hp < 1 then
 					fires[k].isVisible = false
 					table.remove(fires, k)
@@ -576,6 +580,7 @@ local function onFrame( )
 						if devils[k].hp == 10 then
 							createSteam(devils[k].rotation)
 						elseif devils[k].hp == 1 then
+							audio.play(deamonDieSound)
 							dieDevilDie(devils[k])
 							devils[k].isVisible = false
 							table.remove(devils, k)
@@ -609,6 +614,10 @@ function scene:create( event )
 	goToEnd = false
 	fires = {}
 	steams = {}
+	deamonDieSound = audio.loadSound( "assets/sound/effects/dmonDie.wav" )
+	flameDieSound = audio.loadSound( "assets/sound/effects/flameDie.wav" )
+
+	audio.setVolume( 0.5 ) 
 
 	sceneGroup = self.view
 
