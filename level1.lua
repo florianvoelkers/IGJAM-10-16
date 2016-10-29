@@ -83,6 +83,20 @@ function scene:create( event )
 	physics.setGravity( 0, 0)
 	physics.setDrawMode( "normal" )
 
+	local devilIdleSheetOptions = {
+	    width = 60,
+	    height = 75,
+	    numFrames = 6,
+	    sheetContentWidth = 360,
+	    sheetContentHeight = 75
+	}
+
+	local devilIdleSequence = {
+		{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 }
+	}
+
+	local devilIdleSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_idle_spritesheet.png", devilIdleSheetOptions )
+
 
 	-- create a grey rectangle as the backdrop
 	-- the physical screen will likely be a different shape than our defined content area
@@ -141,11 +155,20 @@ function scene:create( event )
 	        flags = { "water" },
 	        x = world.x,
 	        y = world.y+world.height/2 + 4,
+	        alpha = 0.1,
 	        --color = { 0.1, 0.1, 1, 0.5 },
 	        halfWidth = 16,
 	        halfHeight = 16
 	    }
 	)
+
+	local devilIdle = display.newSprite( devilIdleSheet, devilIdleSequence )
+	devilIdle.x, devilIdle.y = world.x, world.y
+	devilIdle.anchorX, devilIdle.anchorY = 0.4, 3
+	local randomSpawn = math.random(360)
+	devilIdle.rotation = randomSpawn
+	devilIdle:setSequence( "devilIdle" )
+	devilIdle:play()
 
 
 	local function rotateBars( )
@@ -192,9 +215,6 @@ function scene:create( event )
 	particleSystem.particleCollision = particleSystemCollision
 	particleSystem:addEventListener( "particleCollision" ,particleSystemCollision)
 
-
-
-
 	local leftTouchArea = display.newRect( 0, 0, display.actualContentWidth * 0.5, display.actualContentHeight )
 	leftTouchArea.anchorX, leftTouchArea.anchorY = 0, 0
 	leftTouchArea.isVisible = false
@@ -211,6 +231,8 @@ function scene:create( event )
 
 	sceneGroup:insert(leftTouchArea)
 	sceneGroup:insert(rightTouchArea)
+	sceneGroup:insert(worldGroup)
+	sceneGroup:insert( devilIdle )
 end
 
 
