@@ -726,6 +726,7 @@ function scene:create( event )
 	clouds = display.newSprite( cloudSheet, cloudSheetSequence)
 	clouds:setSequence( "cloudMove" )
 	clouds:play()
+	clouds.timeScale = 0.5
 	clouds.x = display.contentCenterX
 	clouds.y = display.contentCenterY
 	worldGroup:insert(clouds)
