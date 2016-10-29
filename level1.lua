@@ -35,6 +35,10 @@ local fireCounter
 local fires
 local steams
 
+local background1
+local background2
+local background3
+
 
 --------------------------------------------
 
@@ -390,6 +394,24 @@ local function dieDevilDie (devil)
 end
 
 local function onFrame( )
+	background1.x = background1.x -0.5
+	background2.x = background2.x -0.5
+	background3.x = background3.x -0.5
+
+	if background1.x < -display.contentCenterX then
+		background1.x = 2*display.contentCenterX
+	end
+	if background2.x < -display.contentCenterX then
+		background2.x = 2*display.contentCenterX
+	end
+	if background3.x < -display.contentCenterX then
+		background3.x = 2*display.contentCenterX
+	end
+
+
+
+
+
 	if 	left == false and right == false and (speed > 0 or speed < 0) then
 		if speed >0.01 then
 			speed = speed -0.005
@@ -506,7 +528,9 @@ local function onFrame( )
 								table.remove(devils, k)
 							end
 							for i =1 , #steams do
-								steams[i]:removeEventListener( "sprite", mySpriteListener ) 
+								if steams[i] then
+									steams[i]:removeEventListener( "sprite", mySpriteListener ) 
+								end
 							end 
 							score.set( scorePoints )
 							score.save()
@@ -596,12 +620,22 @@ function scene:create( event )
 	physics.setGravity( 0, 0)
 	physics.setDrawMode( "normal" )
 
-	local background = display.newImageRect( "assets/map/background.png", display.contentWidth, display.contentHeight )
+	background1 = display.newImageRect( "assets/map/background/1.png", display.contentWidth, display.contentHeight )
+	background1.x = display.contentCenterX
+	background1.y = display.contentCenterY
 
-	background.x = display.contentCenterX
-	background.y = display.contentCenterY
+
+	background2 = display.newImageRect( "assets/map/background/2.png", display.contentWidth, display.contentHeight )
+	background2.x = display.contentCenterX*2
+	background2.y = display.contentCenterY
+
+	background3 = display.newImageRect( "assets/map/background/3.png", display.contentWidth, display.contentHeight )
+	background3.x = display.contentCenterX*3
+	background3.y = display.contentCenterY
 	
-	sceneGroup:insert( background )
+	sceneGroup:insert( background1 )
+	sceneGroup:insert( background2 )
+	sceneGroup:insert( background3 )
 
 	Runtime:addEventListener( "key", onKeyEvent )
 
