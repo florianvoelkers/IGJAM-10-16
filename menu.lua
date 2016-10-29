@@ -6,9 +6,14 @@
 
 local composer = require( "composer" )
 local scene = composer.newScene()
+local score = require( "score" )
+
+
+
 
 -- include Corona's "widget" library
 local widget = require "widget"
+
 
 --------------------------------------------
 
@@ -26,6 +31,16 @@ end
 
 function scene:create( event )
 	local sceneGroup = self.view
+
+	
+
+local scoreText = score.init({
+   filename = "scorefile.txt",
+})
+
+local highscore = score.load()
+
+print(highscore)
 
 	-- Called when the scene's view does not exist.
 	-- 

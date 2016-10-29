@@ -6,6 +6,8 @@
 
 local composer = require( "composer" )
 local scene = composer.newScene()
+local score = require( "score" )
+
 
 local sceneGroup
 
@@ -27,7 +29,7 @@ local devilIdle
 local particleSystem
 local ray = {}
 local fireWorld
-local score
+local scorePoints
 local goToEnd
 local fireCounter
 local fires
@@ -225,8 +227,10 @@ end
 
 local function mySpriteListener( event )
 	if ( event.phase == "loop" ) then
-		steams[event.target.id]:removeSelf( )
-		steams[event.target.id] = nil
+		if event.target then
+			steams[event.target.id]:removeSelf( )
+			steams[event.target.id] = nil
+		end
 	end
 end
 
@@ -469,8 +473,8 @@ local function onFrame( )
 				elseif fires[k].hp < 1 then
 					fires[k].isVisible = false
 					table.remove(fires, k)
-					score = score+0.5
-					print ("score:",score)
+					scorePoints = scorePoints+0.5
+					print ("score:",scorePoints)
 				end
 			end
 		end
@@ -501,24 +505,33 @@ local function onFrame( )
 							for k,v in pairs(devils) do
 								table.remove(devils, k)
 							end
+							for i =1 , #steams do
+								steams[i]:removeEventListener( "sprite", mySpriteListener ) 
+							end 
+							score.set( scorePoints )
+							score.save()
 							display.remove( particleSystem )
-							composer.gotoScene( "end","fade",50)
+							composer.gotoScene( "end","fade",100)
 							composer.removeHidden( )
 							composer.removeScene("level1")
 						end
 					end
 				end
-				if devils[k].fireCounter >= 1 then
-					devils[k].fireCounter = devils[k].fireCounter - 1
-					if devils[k].fireCounter <= 0 and  devils[k].fireOn == false then
-						devils[k].fireOn = true
-						devils[k]:setSequence( "devilFire" )
-						devils[k]:play()
-						devils[k].fireCounter = math.random(100,200)
-					elseif devils[k].fireCounter <= 0 and  devils[k].fireOn then
-						createFire(devils[k].rotation)
-						devils[k]:setSequence( "devilIdle" )
-						devils[k]:play()
+				if devils then
+					if devils[k]then
+						if devils[k].fireCounter >= 1 then
+							devils[k].fireCounter = devils[k].fireCounter - 1
+							if devils[k].fireCounter <= 0 and  devils[k].fireOn == false then
+								devils[k].fireOn = true
+								devils[k]:setSequence( "devilFire" )
+								devils[k]:play()
+								devils[k].fireCounter = math.random(100,200)
+							elseif devils[k].fireCounter <= 0 and  devils[k].fireOn then
+								createFire(devils[k].rotation)
+								devils[k]:setSequence( "devilIdle" )
+								devils[k]:play()
+							end
+						end
 					end
 				end
 
@@ -543,8 +556,8 @@ local function onFrame( )
 							dieDevilDie(devils[k])
 							devils[k].isVisible = false
 							table.remove(devils, k)
-							score = score + 1
-							print ("score:",score)
+							scorePoints = scorePoints + 1
+							print ("score:",scorePoints)
 						end
 					end
 				else
@@ -569,7 +582,7 @@ function scene:create( event )
 	right = false
 	speed = 0
 	maxspeed = 0.5
-	score = 0
+	scorePoints = 0
 	goToEnd = false
 	fires = {}
 	steams = {}
