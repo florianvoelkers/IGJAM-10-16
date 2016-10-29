@@ -428,11 +428,9 @@ local function onFrame( )
 		if devils[k] then
 			if devils[k].rotation then
 				if devils[k].fireOn then
-					if fireWorld.alpha < 1 then
-						fireWorld.hits = fireWorld.hits + 0.00002
-						--fireWorld.hits = fireWorld.hits + 0.02*#devils
-						fireWorld.alpha = fireWorld.hits
-					elseif fireWorld.alpha > 0.98  then
+					fireWorld.hits = fireWorld.hits + 0.00002
+					fireWorld.alpha = fireWorld.hits
+					if fireWorld.alpha > 0.98  then
 						print ("go to end")
 						if goToEnd == false then
 							goToEnd = true
@@ -440,7 +438,7 @@ local function onFrame( )
 								table.remove(devils, k)
 							end
 							display.remove( particleSystem )
-							composer.gotoScene( "end","fade",500)
+							composer.gotoScene( "end","fade",50)
 							composer.removeHidden( )
 							composer.removeScene("level1")
 						end
