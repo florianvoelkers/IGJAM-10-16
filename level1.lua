@@ -445,21 +445,15 @@ local function onFrame( )
 		elseif speed < - 0.01 then
 			speed = speed +0.005
 		else
-			if clouds.isPlaying then
-				clouds:pause()
-			end
+			clouds.timeScale = 0.5
 			speed = 0
 		end
 	elseif left == true and right == false and speed < maxspeed then
 		speed = speed + 0.008
-		if not clouds.isPlaying then
-			clouds:play()
-		end
+		clouds.timeScale = 1
 	elseif left == false and right == true and speed > -maxspeed then
 		speed = speed - 0.008
-		if not clouds.isPlaying then
-			clouds:play()
-		end
+		clouds.timeScale = 1
 	elseif left == true or right == true then
 		speed = speed
 	end
@@ -731,7 +725,7 @@ function scene:create( event )
 
 	clouds = display.newSprite( cloudSheet, cloudSheetSequence)
 	clouds:setSequence( "cloudMove" )
-	--clouds:play()
+	clouds:play()
 	clouds.x = display.contentCenterX
 	clouds.y = display.contentCenterY
 	worldGroup:insert(clouds)
