@@ -254,8 +254,12 @@ end
 local function mySpriteListener( event )
 	if ( event.phase == "loop" ) then
 		if event.target then
-			steams[event.target.id]:remove( )
-			steams[event.target.id] = nil
+			if event.target.id then
+				if steams[event.target.id] then
+					steams[event.target.id]:removeSelf( )
+					steams[event.target.id] = nil
+				end
+			end
 		end
 	end
 end
@@ -559,10 +563,10 @@ local function onFrame( )
 							for k,v in pairs(devils) do
 								table.remove(devils, k)
 							end
-							for i =1 , #steams do
-								if steams[i] then
-									steams[i]:remove()
-									steams[i] = nil
+							for k,v in pairs(steams) do
+								if steams[k] then
+									steams[k]:removeSelf()
+									steams[k] = nil
 								end
 							end 
 							audio.dispose() 
