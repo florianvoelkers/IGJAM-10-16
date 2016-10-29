@@ -27,6 +27,7 @@ local particleSystem
 local ray = {}
 local fireWorld
 local score
+local goToEnd
 
 
 --------------------------------------------
@@ -92,7 +93,7 @@ local function onKeyEvent (event)
 			pressedTimer = 0
 		end
 	elseif event.keyName == "escape" then
-		composer.gotoScene( "menu" )
+		composer.gotoScene( "end" )
 		Runtime:removeEventListener( "key", onKeyEvent )
 		composer.removeHidden() 
 		composer.removeScene( "level1" )
@@ -224,9 +225,20 @@ local function onFrame( )
 		fireWorld.hits = fireWorld.hits + 0.0001*#devils
 		--fireWorld.hits = fireWorld.hits + 0.02*#devils
 		fireWorld.alpha = fireWorld.hits
-	elseif fireWorld.alpha > 0.98 then
+	elseif fireWorld.alpha > 0.98  then
 		print ("go to end")
-		composer.gotoScene( "end", "fade", 500 )
+		if goToEnd == false then
+			goToEnd = true
+			for k,v in pairs(devils) do
+				table.remove(devils, k)
+			end
+			display.remove( particleSystem )
+			
+
+			composer.gotoScene( "end","fade",500)
+			composer.removeHidden( )
+			composer.removeScene("level1")
+		end
 	end
 
 	local hits = {}
@@ -246,8 +258,6 @@ local function onFrame( )
 				end
 
 				if devils[k].hit then
-					--print ("auauauauau")
-					--print ("auauauauau")
 					if devils[k].isVisible then
 						devils[k].hp = devils[k].hp - 1
 						if devils[k].hp < 1 then
@@ -284,6 +294,7 @@ function scene:create( event )
 	speed = 0
 	maxspeed = 0.3
 	score = 0
+	goToEnd = false
 
 	sceneGroup = self.view
 
@@ -405,8 +416,9 @@ end
 function scene:hide( event )
 	local sceneGroup = self.view
 	Runtime:removeEventListener( "key", onKeyEvent )
-	Runtime:removeEventListener( "enterFrame", rotateBars )
 	Runtime:removeEventListener( "enterFrame", onMove)
+	Runtime:removeEventListener( "enterFrame", spawnDevil)
+	Runtime:removeEventListener( "enterFrame", onFrame )
 	local phase = event.phase
 	
 	if event.phase == "will" then

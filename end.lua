@@ -57,6 +57,7 @@ function scene:create( event )
 end
 
 function scene:show( event )
+	print ("show")
 	local sceneGruppe = self.view
 	local phase = event.phase
 	print ("scene show")
