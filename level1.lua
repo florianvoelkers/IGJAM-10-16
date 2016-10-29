@@ -337,6 +337,7 @@ local function setOfExplosion(devilObject, otherObject)
 	sceneGroup:insert(explosion)
 	explosion:setSequence( "explosion" )
 	explosion:play()
+	audio.play(landingSound)
 	explosion:addEventListener( "sprite", explosionListener )
 	devilObject:removeSelf()
 	devilObject = nil
@@ -616,6 +617,8 @@ function scene:create( event )
 	steams = {}
 	deamonDieSound = audio.loadSound( "assets/sound/effects/dmonDie.wav" )
 	flameDieSound = audio.loadSound( "assets/sound/effects/flameDie.wav" )
+	landingSound = audio.loadSound( "assets/sound/effects/landingDmon.wav" )
+
 
 	audio.setVolume( 0.5 ) 
 
