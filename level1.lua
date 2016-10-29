@@ -25,6 +25,7 @@ local middleBar
 local devilIdle
 local particleSystem
 local ray = {}
+local fireWorld
 
 
 --------------------------------------------
@@ -218,6 +219,12 @@ local function onFrame( )
 		display.remove( ray[i] ) ; ray[i] = nil
 	end
 
+	if #devils > 0 and fireWorld.alpha < 1 then
+		fireWorld.hits = fireWorld.hits + 0.0001*#devils
+		fireWorld.alpha = fireWorld.hits
+	end
+	print (fireWorld.alpha )
+
 	local hits = {}
 	local toDelete = {}
 	for k,v in pairs(devils) do
@@ -235,7 +242,7 @@ local function onFrame( )
 				end
 
 				if devils[k].hit then
-					print ("auauauauau")
+					--print ("auauauauau")
 					--print ("auauauauau")
 					if devils[k].isVisible then
 						devils[k].hp = devils[k].hp - 1
@@ -302,6 +309,13 @@ function scene:create( event )
 	moon.x,moon.y = world.x,world.y
 	moon.anchorX = 0.5
 	moon.anchorY = -2.3
+
+	fireWorld = display.newImageRect( worldGroup, "assets/world_fire_dummy.png", 350, 350 )
+	fireWorld.x = display.contentCenterX + 18
+	fireWorld.y = display.contentCenterY
+	fireWorld.alpha = 0
+
+	fireWorld.hits = 0
 
 
 	leftSide = display.newRect( worldGroup, world.x,world.y, 600, 90 )
