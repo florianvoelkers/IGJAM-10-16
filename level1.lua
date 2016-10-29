@@ -618,6 +618,9 @@ function scene:create( event )
 	deamonDieSound = audio.loadSound( "assets/sound/effects/dmonDie.wav" )
 	flameDieSound = audio.loadSound( "assets/sound/effects/flameDie.wav" )
 	landingSound = audio.loadSound( "assets/sound/effects/landingDmon.wav" )
+	musik = audio.loadSound("assets/sound/music/theme.mp3")
+	local optionsSound ={loops = -1}
+	audio.play(musik, optionsSound)
 
 
 	audio.setVolume( 0.5 ) 
