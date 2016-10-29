@@ -623,7 +623,6 @@ local function onFrame( )
 					if devils[k].hit then
 						if devils[k].isVisible then
 							devils[k].hp = devils[k].hp - 1
-							print(devils[k].hp)
 							if devils[k].hp == 10 then
 								createSteam(devils[k].rotation)
 							elseif devils[k].hp == 1 then
@@ -633,7 +632,6 @@ local function onFrame( )
 								table.remove(devils, k)
 								scorePoints = scorePoints + 1
 								print ("score:",scorePoints)
-
 							end
 						else
 							-- if devils[k].rotation > 180 and devils[k].rotation < 270 then
