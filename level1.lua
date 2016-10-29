@@ -167,16 +167,16 @@ end
 local function onFrame( )
 	if 	left == false and right == false and (speed > 0 or speed < 0) then
 		if speed >0.01 then
-			speed = speed -0.01
+			speed = speed -0.005
 		elseif speed < - 0.01 then
-			speed = speed +0.01
+			speed = speed +0.005
 		else
 			speed = 0
 		end
 	elseif left == true and right == false and speed < maxspeed then
-		speed = speed + 0.01
+		speed = speed + 0.008
 	elseif left == false and right == true and speed > -maxspeed then
-		speed = speed - 0.01
+		speed = speed - 0.008
 	elseif left == true or right == true then
 		speed = speed
 	end
@@ -293,7 +293,7 @@ function scene:create( event )
 
 	local worldGroup = display.newGroup()
 
-	world = display.newImageRect( worldGroup, "assets/map/earth.png", 346, 346 )
+	world = display.newImageRect( worldGroup, "assets/map/earth.png", 350, 350 )
 	world.x = display.contentCenterX + 18
 	world.y = display.contentCenterY
 	physics.addBody( world, "static",{radius=178}  )
