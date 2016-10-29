@@ -158,6 +158,10 @@ function scene:create( event )
 
 	print(highscore)
 
+	musik = audio.loadStream("assets/sound/music/theme.mp3")
+	local optionsSound ={loops = -1}
+	audio.play(musik, optionsSound)
+
 	left = false
 	right = false
 	speed = 0
