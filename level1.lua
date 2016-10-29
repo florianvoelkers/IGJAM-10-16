@@ -9,7 +9,18 @@ local scene = composer.newScene()
 
 -- include Corona's "physics" library
 local physics = require "physics"
+local moon 
+local world
 local speed
+local left
+local right
+local speed
+local leftSide
+local rightSide
+local middleBar
+local devilIdle
+local particleSystem
+
 
 --------------------------------------------
 
@@ -50,8 +61,7 @@ local function onKeyEvent (event)
 	end
 end
 
-local left
-local right
+
 
 local function onTouchLeft(event)
 	if event.phase == "began" then
@@ -73,23 +83,99 @@ local function onTouchRight(event)
 	end
 end
 
+
+
+
+
+-- Function to draw new line to the hit point
+local drawHitLine = function( hit )
+	--draw a line to the hit
+	ray = display.newLine( devilIdle.x+devilIdle.width/2 , devilIdle.y- world.width/2, devilIdle.x, devilIdle.y -   devilIdle.height - world.width/2)
+
+end
+
+
+
+
+
+
+local function onFrame( )
+	if 	left == false and right == false and (speed > 0 or speed < 0) then
+		if speed >0 then
+			speed = speed -0.01
+		else
+			speed = speed +0.01
+		end
+	elseif left == true and right == false and speed < 0.5 then
+		speed = speed + 0.01
+	elseif left == false and right == true and speed > -0.5 then
+		speed = speed - 0.01
+	elseif left == true or right == true then
+		speed = speed
+	end
+
+	leftSide.rotation = leftSide.rotation + speed
+	rightSide.rotation = rightSide.rotation + speed
+	middleBar.rotation = middleBar.rotation + speed
+	if leftSide.rotation < -225 then
+		middleBar.rotation = 0
+		leftSide.rotation = 135
+		rightSide.rotation = -135
+	end
+	moon.rotation = moon.rotation +speed
+
+	local gravityY 
+	if leftSide.rotation <= 135 and leftSide.rotation >= -45 then
+		gravityY = -1 * (leftSide.rotation - 45) / 9
+	else
+		gravityY = (leftSide.rotation + 135) / 9
+	end
+	local gravityX
+	if leftSide.rotation <= 135 and leftSide.rotation >= 45 then
+		gravityX = (leftSide.rotation - 135) / 9
+	elseif leftSide.rotation < 45 and leftSide.rotation >= -135 then
+		gravityX = -1 * (leftSide.rotation + 45) / 9
+	else
+		gravityX = (leftSide.rotation + 225) / 9
+	end
+
+	physics.setGravity(gravityX, gravityY)
+
+	gravityY = nil
+	gravityX = nil
+
+
+
+	------------------------------------------------------------
+	display.remove( ray ) ; ray = nil
+
+
+	local hits = particleSystem:rayCast( devilIdle.x, devilIdle.y - devilIdle.height -200, devilIdle.x+devilIdle.width, devilIdle.y +   devilIdle.height -200 )
+	if hits then
+		print ("auauauauau")
+
+		drawHitLine( hit )
+	else
+
+		print ("alles gut")
+	end
+end
+
+
+
+
+
+
 function scene:create( event )
 
 	left = false
 	right = false
 	speed = 0
 
-	-- Called when the scene's view does not exist.
-	-- 
-	-- INSERT code here to initialize the scene
-	-- e.g. add display objects to 'sceneGroup', add touch listeners, etc.
-
 	local sceneGroup = self.view
 	display.setDefault("isAnchorClamped",false)
 	
 
-	-- We need physics started to add bodies, but we don't want the simulaton
-	-- running until the scene is on the screen.
 	physics.start()
 	physics.setGravity( 0, 0)
 	physics.setDrawMode( "normal" )
@@ -106,36 +192,31 @@ function scene:create( event )
 		{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 }
 	}
 
-	local devilIdleSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_idle_spritesheet.png", devilIdleSheetOptions )
+	local devilIdleSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_spritesheet.png", devilIdleSheetOptions )
 
 
-	-- create a grey rectangle as the backdrop
-	-- the physical screen will likely be a different shape than our defined content area
-	-- since we are going to position the background from it's top, left corner, draw the
-	-- background at the real top, left corner.
 	local background = display.newImageRect( "assets/concept_size.png", display.contentWidth, display.contentHeight )
 	background.x = display.contentCenterX
 	background.y = display.contentCenterY
 	
-	-- all display objects must be inserted into group
 	sceneGroup:insert( background )
 
 	Runtime:addEventListener( "key", onKeyEvent )
 
 	local worldGroup = display.newGroup()
 
-	local world = display.newImageRect( worldGroup, "assets/world_size.png", 346, 346 )
+	world = display.newImageRect( worldGroup, "assets/world_size.png", 346, 346 )
 	world.x = display.contentCenterX + 18
 	world.y = display.contentCenterY
 	physics.addBody( world, "static",{radius=178}  )
 
-	local moon = display.newImageRect( worldGroup, "assets/moon_size.png", 123, 123 )
+	moon = display.newImageRect( worldGroup, "assets/moon_size.png", 123, 123 )
 	moon.x,moon.y = world.x,world.y
 	moon.anchorX = 0.5
 	moon.anchorY = -2.3
 
 
-	local leftSide = display.newRect( worldGroup, world.x,world.y, 600, 90 )
+	leftSide = display.newRect( worldGroup, world.x,world.y, 600, 90 )
 	leftSide.alpha=0
 	leftSide.rotation = 135
 	leftSide.anchorX = 0.6
@@ -143,7 +224,7 @@ function scene:create( event )
 
 	physics.addBody( leftSide, "static" )
 
-	local rightSide = display.newRect( worldGroup, world.x,world.y, 600, 90 )
+	rightSide = display.newRect( worldGroup, world.x,world.y, 600, 90 )
 	rightSide.alpha=0
 	rightSide.rotation = -135
 	rightSide.anchorX = 0.4
@@ -152,7 +233,7 @@ function scene:create( event )
 	physics.addBody( rightSide, "static" )
 
 
-	local middleBar = display.newRect(worldGroup, world.x,world.y,600,90)
+	middleBar = display.newRect(worldGroup, world.x,world.y,600,90)
 	middleBar.alpha=0
 	middleBar.rotation = 0
 	middleBar.anchorX = 0.5
@@ -160,97 +241,35 @@ function scene:create( event )
 
 	physics.addBody( middleBar, "static" )
 
-	local particleSystem = physics.newParticleSystem{
+	particleSystem = physics.newParticleSystem{
 		filename = "assets/liquidParticle.png",
 		radius = 3,
 		imageRadius = 5,
 		gravityScale = 1.0,
-		strictContactCheck = true,
+		strictContactCheck = true
 	}
-
-	-- Create a "block" of water (LiquidFun group)
 	particleSystem:createGroup(
 	    {
-	        flags = { "water" },
+	        flags = { "water" , "fixtureContactListener"},
 	        x = world.x,
 	        y = world.y+world.height/2 + 4,
 	        halfWidth = 18,
 	        halfHeight = 18
-	    }
+	   	    }
 	)
 
-	local devilIdle = display.newSprite( devilIdleSheet, devilIdleSequence )
+	particleSystem.myName = "Wasser"
+
+	devilIdle = display.newSprite( devilIdleSheet, devilIdleSequence )
 	devilIdle.x, devilIdle.y = world.x, world.y
 	devilIdle.anchorX, devilIdle.anchorY = 0.4, 3
+	devilIdle.myName = "devilIdle"
 	local randomSpawn = math.random(360)
 	devilIdle.rotation = randomSpawn
 	devilIdle:setSequence( "devilIdle" )
 	devilIdle:play()
 
-
-	local function rotateBars( )
-
-		print("links",left,"rechts", right)
-		if 	left == false and right == false and (speed > 0 or speed < 0) then
-			if speed >0 then
-				speed = speed -0.01
-			else
-				speed = speed +0.01
-			end
-		elseif left == true and right == false and speed < 0.5 then
-			speed = speed + 0.01
-		elseif left == false and right == true and speed > -0.5 then
-			speed = speed - 0.01
-		elseif left == true or right == true then
-			speed = speed
-		end
-
-
-
-		leftSide.rotation = leftSide.rotation + speed
-		rightSide.rotation = rightSide.rotation + speed
-		middleBar.rotation = middleBar.rotation + speed
-		if leftSide.rotation < -225 then
-			middleBar.rotation = 0
-			leftSide.rotation = 135
-			rightSide.rotation = -135
-		end
-		moon.rotation = moon.rotation +speed
-
-		local gravityY 
-		if leftSide.rotation <= 135 and leftSide.rotation >= -45 then
-			gravityY = -1 * (leftSide.rotation - 45) / 9
-		else
-			gravityY = (leftSide.rotation + 135) / 9
-		end
-		local gravityX
-		if leftSide.rotation <= 135 and leftSide.rotation >= 45 then
-			gravityX = (leftSide.rotation - 135) / 9
-		elseif leftSide.rotation < 45 and leftSide.rotation >= -135 then
-			gravityX = -1 * (leftSide.rotation + 45) / 9
-		else
-			gravityX = (leftSide.rotation + 225) / 9
-		end
-
-		physics.setGravity(gravityX, gravityY)
-
-		gravityY = nil
-		gravityX = nil
-	end
-
-	Runtime:addEventListener( "enterFrame", rotateBars )
-
-
-	local function particleSystemCollision( self, event )
-	 	print(event.phase)
-	   --print( "Collision with particleSystem." )
-	   if ( event.phase == "began" ) then
-	 	print ("collision", "begin")
-	   end
-	end
-	 
-	particleSystem.particleCollision = particleSystemCollision
-	particleSystem:addEventListener( "particleCollision" ,particleSystemCollision)
+	Runtime:addEventListener( "enterFrame", onFrame )
 
 	local leftTouchArea = display.newRect( 0, 0, display.actualContentWidth * 0.5, display.actualContentHeight )
 	leftTouchArea.anchorX, leftTouchArea.anchorY = 0, 0
@@ -270,6 +289,8 @@ function scene:create( event )
 	sceneGroup:insert(rightTouchArea)
 	sceneGroup:insert(worldGroup)
 	sceneGroup:insert( devilIdle )
+
+
 end
 
 
