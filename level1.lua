@@ -441,10 +441,10 @@ local function onFrame( )
 		elseif speed < - 0.01 then
 			speed = speed +0.005
 		else
+			if clouds.isPlaying then
+				clouds:pause()
+			end
 			speed = 0
-		end
-		if clouds.isPlaying then
-			clouds:pause()
 		end
 	elseif left == true and right == false and speed < maxspeed then
 		speed = speed + 0.008
@@ -565,6 +565,7 @@ local function onFrame( )
 									steams[i] = nil
 								end
 							end 
+							audio.dispose() 
 							score.set( scorePoints )
 							score.save()
 							display.remove( particleSystem )
@@ -661,7 +662,7 @@ function scene:create( event )
 	deamonDieSound = audio.loadSound( "assets/sound/effects/dmonDie.wav" )
 	flameDieSound = audio.loadSound( "assets/sound/effects/flameDie.wav" )
 	landingSound = audio.loadSound( "assets/sound/effects/landingDmon.wav" )
-	musik = audio.loadSound("assets/sound/music/theme.mp3")
+	musik = audio.loadStream("assets/sound/music/theme.mp3")
 	local optionsSound ={loops = -1}
 	audio.play(musik, optionsSound)
 
