@@ -41,6 +41,7 @@ local flameDieSound
 local background1
 local background2
 local background3
+local clouds
 
 
 --------------------------------------------
@@ -116,6 +117,15 @@ local earthDestructionOptions = {
     sheetContentHeight = 350
 }
 
+local cloudSheetOptions = {
+    width = 350,
+    height = 350,
+    numFrames = 11,
+    sheetContentWidth = 3850,
+    sheetContentHeight = 350
+}
+
+
 
 
 local devilIdleSequence = {
@@ -152,6 +162,10 @@ local earthDestructionSequence = {
 	{name = "stage5", frames = {5}}
 }
 
+local cloudSheetSequence = {
+	{name = "cloudMove", frames = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, time = 2500}
+}
+
 local devilFlySheet = graphics.newImageSheet( "assets/character/spritesheets/devil_fly_cube.png", devilFlySheetOptions)
 local explosionSheet = graphics.newImageSheet( "assets/map/explosion/explosion_spritesheet.png", explosionSheetOptions)
 local devilIdleFireSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_fire_spritesheet.png", devilIdleSheetOptions )
@@ -159,6 +173,7 @@ local fireBurnSheet = graphics.newImageSheet( "assets/map/fire/fire_small_sprite
 local waterSteamSheet = graphics.newImageSheet( "assets/character/spritesheets/wasserdampf/wasserdampf_spritesheet.png", waterSteamSheetOptions)
 local develDieSheet = graphics.newImageSheet( "assets/character/spritesheets/dying/deathanim_devil_spritesheet.png", devilDieSheetOptions)
 local earthDestructionSheet = graphics.newImageSheet("assets/map/earth_destruction_sheet.png", earthDestructionOptions)
+local cloudSheet = graphics.newImageSheet("assets/map/clouds/clouds_spritesheet.png", cloudSheetOptions)
 
 
 
@@ -425,10 +440,19 @@ local function onFrame( )
 		else
 			speed = 0
 		end
+		if clouds.isPlaying then
+			clouds:pause()
+		end
 	elseif left == true and right == false and speed < maxspeed then
 		speed = speed + 0.008
+		if not clouds.isPlaying then
+			clouds:play()
+		end
 	elseif left == false and right == true and speed > -maxspeed then
 		speed = speed - 0.008
+		if not clouds.isPlaying then
+			clouds:play()
+		end
 	elseif left == true or right == true then
 		speed = speed
 	end
@@ -681,8 +705,16 @@ function scene:create( event )
 	fireWorld.x = display.contentCenterX
 	fireWorld.y = display.contentCenterY
 	fireWorld.alpha = 0
-
 	fireWorld.hits = 0
+
+	clouds = display.newSprite( cloudSheet, cloudSheetSequence)
+	clouds:setSequence( "cloudMove" )
+	--clouds:play()
+	clouds.x = display.contentCenterX
+	clouds.y = display.contentCenterY
+	worldGroup:insert(clouds)
+
+
 
 
 	leftSide = display.newRect( worldGroup, world.x,world.y, 600, 90 )
