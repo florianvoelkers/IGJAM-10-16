@@ -151,7 +151,31 @@ end
 
 local function createFlyingDevil(...)
 	local flyingDevil = display.newSprite( devilFlySheet, devilFlySequence)
-	flyingDevil.x, flyingDevil.y = world.x, display.actualContentHeight + 100
+	local spawnArea = math.random( 4 ) -- 1 = left, 2 = bottom, 3 = right, 4 = top
+	local posX
+	local posY
+	if spawnArea == 1 then
+		posX = -1 * math.random(100, 200)
+		posY = math.random(display.contentHeight)
+		local difY = posY - world.y
+		flyingDevil.rotation = 1/8 * -1 * difY + 270 + 180
+	elseif spawnArea == 2 then
+		posX = math.random(display.contentWidth)
+		posY = math.random (display.contentHeight + 100, display.contentHeight + 200)
+		local difX = posX - world.x
+		flyingDevil.rotation = 9/128 * -1 * difX
+	elseif spawnArea == 3 then
+		posX = math.random(display.contentWidth + 100, display.contentWidth + 200)
+		posY = math.random(display.contentHeight)
+		local difY = posY - world.y
+		flyingDevil.rotation = 1/8 * difY + 90 + 180
+	elseif spawnArea == 4 then
+		posX = math.random(display.contentHeight)
+		posY = -1 * math.random(100, 200)
+		local difX = posX - world.x
+		flyingDevil.rotation = 9/128 * difX + 180
+	end
+	flyingDevil.x, flyingDevil.y = posX, posY
 	return flyingDevil
 end
 
@@ -211,7 +235,6 @@ local function onFrame( )
 	elseif left == true or right == true then
 		speed = speed
 	end
-	print(speed)
 
 	leftSide.rotation = leftSide.rotation + speed
 	rightSide.rotation = rightSide.rotation + speed
@@ -242,15 +265,10 @@ local function onFrame( )
 		gravityX = (leftSide.rotation + 225) / 9
 	end
 
-	print("rotation: " .. leftSide.rotation)
-	print("gX: " .. gravityX)
-	print("gY: " .. gravityY)
 	physics.setGravity(gravityX, gravityY)
 
 	gravityY = nil
 	gravityX = nil
-
-
 
 	------------------------------------------------------------
 	display.remove( ray ) ; ray = nil
@@ -291,7 +309,7 @@ function scene:create( event )
 	local worldGroup = display.newGroup()
 
 	world = display.newImageRect( worldGroup, "assets/map/earth.png", 346, 346 )
-	world.x = display.contentCenterX + 18
+	world.x = display.contentCenterX
 	world.y = display.contentCenterY
 	physics.addBody( world, "static",{radius=178}  )
 
