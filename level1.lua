@@ -13,6 +13,7 @@ local sceneGroup
 local physics = require "physics"
 local speed
 local devils = {}
+local flyingDevils = {}
 local world
 
 --------------------------------------------
@@ -24,6 +25,10 @@ display.setStatusBar( display.HiddenStatusBar )
 local screenW, screenH, halfW = display.contentWidth, display.contentHeight, display.contentCenterX
 
 local pressedTimer = 0
+local spawnTimer = 0
+local spawnAfter = 120
+local devilsCounter = 0
+local flyingDevilsCounter = 0
 
 local devilIdleSheetOptions = {
     width = 60,
@@ -33,11 +38,24 @@ local devilIdleSheetOptions = {
     sheetContentHeight = 75
 }
 
+local devilSummonSheetOptions = {
+    width = 60,
+    height = 75,
+    numFrames = 2,
+    sheetContentWidth = 160,
+    sheetContentHeight = 75
+}
+
 local devilIdleSequence = {
 	{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 }
 }
 
+local devilSummonSequence = {
+	{name = "devilSummon", frames = {1, 2}, time = 500}
+}
+
 local devilIdleSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_spritesheet.png", devilIdleSheetOptions )
+local devilSummonSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_flying_spritesheet.png", devilSummonSheetOptions)
 
 local function onMove (event)
 	pressedTimer = pressedTimer + 1
@@ -100,17 +118,30 @@ local function createDevil(...)
 	return devilIdle
 end
 
-local spawnTimer = 0
-local spawnAfter = 120
-local devilCounter = 0
+local function setDevil()
+	devilsCounter = devilsCounter + 1
+	devils[devilsCounter] = createDevil()
+	sceneGroup:insert(devils[devilsCounter])
+	devils[devilsCounter]:setSequence( "devilIdle" )
+	devils[devilsCounter]:play()
+end
+
+local function createFlyingDevil(...)
+	local flyingDevil = display.newSprite( devilSummonSheet, devilSummonSequence)
+	flyingDevil.x, flyingDevil.y = world.x, display.actualContentHeight + 100
+	return flyingDevil
+end
+
+local function flyingDevil( devilObject )
+	transition.to( devilObject, {time = 3000, x = world.x, y = world.y, onComplete = setDevil} )
+end
+
 local function spawnDevil (event)
 	spawnTimer = spawnTimer + 1
 	if spawnTimer >= spawnAfter then
-		devilCounter = devilCounter + 1
-		devils[devilCounter] = createDevil()
-		sceneGroup:insert(devils[devilCounter])
-		devils[devilCounter]:setSequence( "devilIdle" )
-		devils[devilCounter]:play()
+		flyingDevilsCounter = flyingDevilsCounter + 1		
+		flyingDevils[flyingDevilsCounter] = createFlyingDevil()
+		flyingDevil(flyingDevils[flyingDevilsCounter])
 		spawnTimer = 0
 	end	
 end
