@@ -254,7 +254,7 @@ end
 local function mySpriteListener( event )
 	if ( event.phase == "loop" ) then
 		if event.target then
-			steams[event.target.id]:removeSelf( )
+			steams[event.target.id]:remove( )
 			steams[event.target.id] = nil
 		end
 	end
@@ -561,7 +561,8 @@ local function onFrame( )
 							end
 							for i =1 , #steams do
 								if steams[i] then
-									steams[i]:removeEventListener( "sprite", mySpriteListener ) 
+									steams[i]:remove()
+									steams[i] = nil
 								end
 							end 
 							score.set( scorePoints )
