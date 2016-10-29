@@ -30,7 +30,8 @@ local fireWorld
 local score
 local goToEnd
 local fireCounter
-local fires = {}
+local fires
+local steams
 
 
 --------------------------------------------
@@ -81,6 +82,15 @@ local fireBurnSheetOptions = {
 }
 
 
+local waterSteamSheetOptions = {
+    width = 140,
+    height = 80,
+    numFrames = 7,
+    sheetContentWidth = 980,
+    sheetContentHeight = 80
+}
+
+
 local devilIdleSequence = {
 	{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 },
 	{name = "devilFire", frames = { 7,8,9,10 }, time = 1600 }
@@ -97,11 +107,15 @@ local explosionSequence = {
 local fireBurnSequence = {
 	{name = "fireBurn", frames = {1, 2,3,4,5}, time = 1600}
 }
+local waterSteamSequence = {
+	{name = "waterSteam", frames = {1, 2,3,4,5,6,7}, time = 1800}
+}
 
 local devilFlySheet = graphics.newImageSheet( "assets/character/spritesheets/devil_fly_cube.png", devilFlySheetOptions)
 local explosionSheet = graphics.newImageSheet( "assets/map/explosion/explosion_spritesheet.png", explosionSheetOptions)
 local devilIdleFireSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_fire_spritesheet.png", devilIdleSheetOptions )
 local fireBurnSheet = graphics.newImageSheet( "assets/map/fire/fire_small_spritesheet.png", fireBurnSheetOptions)
+local waterSteamSheet = graphics.newImageSheet( "assets/character/wasserdampf/wasserdampf_spritesheet.png", waterSteamSheetOptions)
 
 
 local function onMove (event)
@@ -172,6 +186,29 @@ local function createFire( angle )
 	fires[#fires].fireCounter = math.random( 300,400 )
 	fires[#fires].hp = 50
 	sceneGroup:insert(fires[#fires])
+end
+
+
+
+local function mySpriteListener( event )
+
+	if ( event.phase == "ended" ) then
+	  animation:removeSelf()
+	  animation = nil
+	end
+end
+
+      
+local function createSteam( angle )
+	steams[#steams+1] = {}
+	steams[#steams] = display.newSprite( waterSteamSheet,waterSteamSequence )
+	steams[#steams].x, fires[#steams].y = world.x, world.y
+	steams[#steams].anchorX, steams[#steams].anchorY = 0.4, 3
+	steams[#steams].rotation = angle
+	steams[#steams]:setSequence( "waterSteam" )
+	steams[#steams]:play()
+	sceneGroup:insert(steams[#steams])
+	steams[#steams]:addEventListener( "sprite", mySpriteListener )  
 end
 
 
@@ -372,10 +409,11 @@ local function onFrame( )
 		end
 
 		if fires[k].hit then
-			print ("fire hit")
 			if fires[k].isVisible then
 				fires[k].hp = fires[k].hp - 1
-				if fires[k].hp < 1 then
+				if fires[k].hp < 15 then
+					createSteam(fires[k].rotation)
+				elseif fires[k].hp < 1 then
 					fires[k].isVisible = false
 					table.remove(fires, k)
 					score = score+0.5
@@ -435,7 +473,9 @@ local function onFrame( )
 				if devils[k].hit then
 					if devils[k].isVisible then
 						devils[k].hp = devils[k].hp - 1
-						if devils[k].hp < 1 then
+						if devils[k].hp < 10 then
+							createSteam(devils[k].rotation)
+						elseif devils[k].hp < 1 then
 							devils[k].isVisible = false
 							table.remove(devils, k)
 							score = score+1
@@ -466,6 +506,8 @@ function scene:create( event )
 	maxspeed = 0.3
 	score = 0
 	goToEnd = false
+	fires = {}
+	steams = {}
 
 	sceneGroup = self.view
 
