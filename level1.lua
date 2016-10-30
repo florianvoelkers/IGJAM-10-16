@@ -17,6 +17,8 @@ local moon
 local speed
 local devils = {}
 local flyingDevils = {}
+local flowerPowerUps = {}
+local powerUps = {}
 local world
 local earth2
 local left
@@ -57,6 +59,8 @@ local spawnTimer = 0
 local spawnAfter = 300
 local devilsCounter = 0
 local flyingDevilsCounter = 0
+local flowerPowerUpCounter = 0
+local powerUpCounter = 0
 
 local devilIdleSheetOptions = {
     width = 60,
@@ -125,7 +129,13 @@ local cloudSheetOptions = {
     sheetContentHeight = 350
 }
 
-
+local flowerPowerUpOptions = {
+	width = 68,
+    height = 58,
+    numFrames = 3,
+    sheetContentWidth = 204,
+    sheetContentHeight = 58
+}
 
 
 local devilIdleSequence = {
@@ -166,6 +176,10 @@ local cloudSheetSequence = {
 	{name = "cloudMove", frames = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, time = 2500}
 }
 
+local flowerPowerUpSequence = {
+	{name = "flowerPowerUp", frames = {1, 2, 3}, time = 600}
+}
+
 local devilFlySheet = graphics.newImageSheet( "assets/character/spritesheets/devil_fly_cube.png", devilFlySheetOptions)
 local explosionSheet = graphics.newImageSheet( "assets/map/explosion/explosion_spritesheet.png", explosionSheetOptions)
 local devilIdleFireSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_fire_spritesheet.png", devilIdleSheetOptions )
@@ -174,7 +188,7 @@ local waterSteamSheet = graphics.newImageSheet( "assets/character/spritesheets/w
 local develDieSheet = graphics.newImageSheet( "assets/character/spritesheets/dying/deathanim_devil_spritesheet.png", devilDieSheetOptions)
 local earthDestructionSheet = graphics.newImageSheet("assets/map/earth_destruction_sheet.png", earthDestructionOptions)
 local cloudSheet = graphics.newImageSheet("assets/map/clouds/clouds_spritesheet.png", cloudSheetOptions)
-
+local flowerPowerUpSheet = graphics.newImageSheet( "assets/powerups/blume_powerup_spritesheet.png", flowerPowerUpOptions )
 
 
 local function onMove (event)
@@ -377,19 +391,95 @@ local function onFlyingDevilCollision (self, event)
 	end
 end
 
+local function createFlowerPowerUp(...)
+	local flowerPowerUp = display.newSprite( flowerPowerUpSheet, flowerPowerUpSequence)
+	local spawnArea = math.random( 4 ) -- 1 = left, 2 = bottom, 3 = right, 4 = top
+	local posX
+	local posY
+	if spawnArea == 1 then
+		posX = -1 * math.random(100, 200)
+		posY = math.random(display.contentHeight)
+		local difY = posY - world.y
+		flowerPowerUp.rotation = 1/8 * -1 * difY + 270
+	elseif spawnArea == 2 then
+		posX = math.random(display.contentWidth)
+		posY = math.random (display.contentHeight + 100, display.contentHeight + 200)
+		local difX = posX - world.x
+		flowerPowerUp.rotation = 9/128 * -1 * difX - 180
+	elseif spawnArea == 3 then
+		posX = math.random(display.contentWidth + 100, display.contentWidth + 200)
+		posY = math.random(display.contentHeight)
+		local difY = posY - world.y
+		flowerPowerUp.rotation = 1/8 * difY + 90
+	elseif spawnArea == 4 then
+		posX = math.random(display.contentHeight)
+		posY = -1 * math.random(100, 200)
+		local difX = posX - world.x
+		flowerPowerUp.rotation = 9/128 * difX
+	end
+	flowerPowerUp.x, flowerPowerUp.y = posX, posY
+	return flowerPowerUp
+end
+
+local function flyingFlower(flower)
+	transition.to( flower, {time = 6000, x = world.x, y = world.y} )
+end
+
+local function spawnFlower(flower)
+	powerUpCounter = powerUpCounter + 1
+	powerUps[powerUpCounter] = display.newSprite( flowerPowerUpSheet, flowerPowerUpSequence )
+	powerUps[powerUpCounter].x, powerUps[powerUpCounter].y = flower.x, flower.y
+	powerUps[powerUpCounter].rotation = flower.rotation 
+	sceneGroup:insert(powerUps[powerUpCounter])
+	print("delete old flower")
+	flower:removeSelf()
+	flower = nil
+end
+
+local function spawnPowerUp(powerUp)
+	local powerUpType = powerUp.type 
+	if powerUpType == "flowerPowerUp" then
+		spawnFlower(powerUp)
+	end
+end
+
+local function onFlyingFlowerPowerUpCollision(self, event)
+	if event.other.myName then
+		if event.other.myName == "earth2" then
+			spawnPowerUp(self)
+		end
+	end
+end
+
 local function spawnDevil (event)
+	local randomDrop = math.random( 10 )
+	
 	spawnTimer = spawnTimer + 1
 	if spawnTimer >= spawnAfter then
-		flyingDevilsCounter = flyingDevilsCounter + 1		
-		flyingDevils[flyingDevilsCounter] = createFlyingDevil()
-		sceneGroup:insert(flyingDevils[flyingDevilsCounter])
-		flyingDevils[flyingDevilsCounter]:setSequence( "devilFly" )
-		flyingDevils[flyingDevilsCounter]:play()
-		flyingDevil(flyingDevils[flyingDevilsCounter])
-		physics.addBody( flyingDevils[flyingDevilsCounter], "dynamic", { isSensor = true } )
-		flyingDevils[flyingDevilsCounter].collision = onFlyingDevilCollision
-		flyingDevils[flyingDevilsCounter].myName = "devil"
-		flyingDevils[flyingDevilsCounter]:addEventListener( "collision")
+		if randomDrop >= 9 then
+			flyingDevilsCounter = flyingDevilsCounter + 1		
+			flyingDevils[flyingDevilsCounter] = createFlyingDevil()
+			sceneGroup:insert(flyingDevils[flyingDevilsCounter])
+			flyingDevils[flyingDevilsCounter]:setSequence( "devilFly" )
+			flyingDevils[flyingDevilsCounter]:play()
+			flyingDevil(flyingDevils[flyingDevilsCounter])
+			physics.addBody( flyingDevils[flyingDevilsCounter], "dynamic", { isSensor = true } )
+			flyingDevils[flyingDevilsCounter].collision = onFlyingDevilCollision
+			flyingDevils[flyingDevilsCounter].myName = "devil"
+			flyingDevils[flyingDevilsCounter]:addEventListener( "collision")
+		else
+			flowerPowerUpCounter = flowerPowerUpCounter + 1
+			flowerPowerUps[flowerPowerUpCounter] = createFlowerPowerUp()
+			sceneGroup:insert(flowerPowerUps[flowerPowerUpCounter])
+			flowerPowerUps[flowerPowerUpCounter]:setSequence( "flowerPowerUp" )
+			flowerPowerUps[flowerPowerUpCounter]:play()
+			flyingFlower(flowerPowerUps[flowerPowerUpCounter])
+			physics.addBody( flowerPowerUps[flowerPowerUpCounter], "dynamic", { isSensor = true } )
+			flowerPowerUps[flowerPowerUpCounter].type = "flowerPowerUp"
+			flowerPowerUps[flowerPowerUpCounter].collision = onFlyingFlowerPowerUpCollision
+			flowerPowerUps[flowerPowerUpCounter].myName = "flowerPowerUp"
+			flowerPowerUps[flowerPowerUpCounter]:addEventListener( "collision")
+		end
 		spawnTimer = 0
 	end	
 end
