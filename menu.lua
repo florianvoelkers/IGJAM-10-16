@@ -175,7 +175,7 @@ local function onFrame(event)
 	playButton.hit = particleSystem:rayCast( 0, display.contentCenterY ,display.contentCenterX - 100, display.contentCenterY)
 	if playButton.hit then
 		playButton.hp = playButton.hp - 1
-		playButton:setFillColor( playButton.hp/100, playButton.hp/100,  playButton.hp/100)
+		playButton.alpha = playButton.hp/100
 		if playButton.hp == 0 then
 			clouds:removeSelf()
 			Runtime:removeEventListener( "enterFrame", onFrame )
@@ -200,7 +200,7 @@ local function onFrame(event)
 		highscoreButton.hit = particleSystem:rayCast( display.contentWidth, display.contentCenterY ,display.contentCenterX, display.contentCenterY)
 		if highscoreButton.hit then
 			highscoreButton.hp = highscoreButton.hp - 1
-			highscoreButton:setFillColor( highscoreButton.hp/100, highscoreButton.hp/100,  highscoreButton.hp/100)
+			highscoreButton.alpha = highscoreButton.hp/100
 			if highscoreButton.hp == 0 then
 				clouds:removeSelf()
 				Runtime:removeEventListener( "enterFrame", onFrame )
