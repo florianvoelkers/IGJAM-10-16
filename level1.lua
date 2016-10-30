@@ -535,21 +535,15 @@ local function onFrame( )
 		elseif speed < - 0.01 then
 			speed = speed +0.005
 		else
-			if clouds.isPlaying then
-				clouds:pause()
-			end
+			clouds.timeScale = 0.5
 			speed = 0
 		end
 	elseif left == true and right == false and speed < maxspeed then
 		speed = speed + 0.008
-		if not clouds.isPlaying then
-			clouds:play()
-		end
+		clouds.timeScale = 1
 	elseif left == false and right == true and speed > -maxspeed then
 		speed = speed - 0.008
-		if not clouds.isPlaying then
-			clouds:play()
-		end
+		clouds.timeScale = 1
 	elseif left == true or right == true then
 		speed = speed
 	end
@@ -653,12 +647,12 @@ local function onFrame( )
 							for k,v in pairs(devils) do
 								table.remove(devils, k)
 							end
-							for k,v in pairs(steams) do
-								if steams[k] then
-									steams[k]:removeSelf()
-									steams[k] = nil
-								end
-							end 
+							-- for k,v in pairs(steams) do
+							-- 	if steams[k] then
+							-- 		steams[k]:removeSelf()
+							-- 		steams[k] = nil
+							-- 	end
+							-- end 
 							audio.dispose() 
 							score.set( scorePoints )
 							score.save()
@@ -754,9 +748,7 @@ function scene:create( event )
 	deamonDieSound = audio.loadSound( "assets/sound/effects/dmonDie.wav" )
 	flameDieSound = audio.loadSound( "assets/sound/effects/flameDie.wav" )
 	landingSound = audio.loadSound( "assets/sound/effects/landingDmon.wav" )
-	musik = audio.loadStream("assets/sound/music/theme.mp3")
-	local optionsSound ={loops = -1}
-	audio.play(musik, optionsSound)
+
 
 
 	audio.setVolume( 0.5 ) 
@@ -813,7 +805,7 @@ function scene:create( event )
 	moon.anchorX = 0.5
 	moon.anchorY = -2.3
 
-	fireWorld = display.newImageRect( worldGroup, "assets/map/earth_shadow.png", 355, 355 )
+	fireWorld = display.newImageRect( worldGroup, "assets/map/earth_shadow.png", 357, 357 )
 	fireWorld.x = display.contentCenterX
 	fireWorld.y = display.contentCenterY
 	fireWorld.alpha = 0
@@ -821,7 +813,8 @@ function scene:create( event )
 
 	clouds = display.newSprite( cloudSheet, cloudSheetSequence)
 	clouds:setSequence( "cloudMove" )
-	--clouds:play()
+	clouds:play()
+	clouds.timeScale = 0.5
 	clouds.x = display.contentCenterX
 	clouds.y = display.contentCenterY
 	worldGroup:insert(clouds)
