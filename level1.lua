@@ -280,25 +280,25 @@ end
 
 local function createFlyingDevil()
 	local flyingDevil = display.newSprite( devilFlySheet, devilFlySequence)
-	local spawnArea = math.random( 4 ) -- 1 = left, 2 = bottom, 3 = right, 4 = top
+	local spawnArea = math.random( 400 ) -- 1 = left, 2 = bottom, 3 = right, 4 = top
 	local posX
 	local posY
-	if spawnArea == 1 then
+	if spawnArea < 100 then
 		posX = -1 * math.random(100, 200)
 		posY = math.random(screenH)
 		local difY = posY - world.y
 		flyingDevil.rotation = 0.125 * -difY + 450
-	elseif spawnArea == 2 then
+	elseif spawnArea <200 then
 		posX = math.random(screenW)
 		posY = math.random (screenH + 100, screenH + 200)
 		local difX = posX - world.x
 		flyingDevil.rotation = 9/128 * -difX
-	elseif spawnArea == 3 then
+	elseif spawnArea < 300 then
 		posX = math.random(screenW + 100, screenW + 200)
 		posY = math.random(screenH)
 		local difY = posY - world.y
 		flyingDevil.rotation = 0.125 * difY + 270
-	elseif spawnArea == 4 then
+	elseif spawnArea < 400 then
 		posX = math.random(screenH)
 		posY = -1 * math.random(100, 200)
 		local difX = posX - world.x
