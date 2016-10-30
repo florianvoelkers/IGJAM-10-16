@@ -234,8 +234,10 @@ local function mySpriteListener( event )
 		if event.target then
 			if event.target.id then
 				if steams[event.target.id] then
-					steams[event.target.id]:removeSelf( )
-					steams[event.target.id] = nil
+					if steams[event.target.id]:removeSelf( ) then
+						steams[event.target.id]:removeSelf( )
+						steams[event.target.id] = nil
+					end
 				end
 			end
 		end
@@ -467,7 +469,20 @@ local function dieDevilDie (devil)
 	dyingDevil:addEventListener( "sprite", onDevilDeadListener )
 end
 
-local function onFrame( )
+local function onFrame(event)
+
+	if event.time/1000 < 20 then
+		spawnAfter = 300
+	elseif event.time/1000 < 40 then
+		spawnAfter = 250 
+	elseif event.time/1000 < 60 then
+		spawnAfter = 200
+	elseif event.time/1000 < 80 then
+		spawnAfter = 150
+	elseif event.time/1000 < 100 then
+		spawnAfter = 100
+	end
+
 	background1.x = background1.x -0.5
 	background2.x = background2.x -0.5
 	background3.x = background3.x -0.5
@@ -734,9 +749,8 @@ local function initScene(...)
 	flowerPowerUps = {}
 	powerUps = {}
 	ray = {}
-
 	spawnTimer = 0
-	spawnAfter = 300
+	spawnAfter = 350
 	left = false
 	right = false
 	speed = 0
@@ -868,7 +882,7 @@ function scene:create( event )
 	        y = world.y+world.height/2 + 6,
 	        halfWidth = 18,
 	        halfHeight = 18,
-	        outline = (graphics.newOutline( 2, "assets/triangle.png"))
+	        outline = (graphics.newOutline( 100, "assets/triangle.png"))
 	   	    }
 	)
 	particleSystem.myName = "Wasser"
