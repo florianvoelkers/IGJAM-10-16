@@ -478,7 +478,7 @@ end
 local function spawnDevil (event)	
 	spawnTimer = spawnTimer + 1
 	if spawnTimer >= spawnAfter then
-		if math.random( 42, 52 ) <= 48 then		
+		if math.random( 42, 52 ) <= 50 then		
 			flyingDevils[#flyingDevils+1] = createFlyingDevil()
 			sceneGroup:insert(flyingDevils[#flyingDevils])
 			flyingDevils[#flyingDevils]:setSequence( "devilFly" )
