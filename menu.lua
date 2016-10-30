@@ -117,7 +117,7 @@ local function onFrame(event)
 	gravityX = nil
 
 
-	playButton.hit = particleSystem:rayCast( 0, display.contentCenterY ,display.contentCenterX, display.contentCenterY)
+	playButton.hit = particleSystem:rayCast( 0, display.contentCenterY ,display.contentCenterX - 100, display.contentCenterY)
 	if playButton.hit then
 		playButton.hp = playButton.hp - 1
 		playButton:setFillColor( playButton.hp/100, playButton.hp/100,  playButton.hp/100)
@@ -128,6 +128,10 @@ local function onFrame(event)
 			particleSystem = nil
 			leftTouchArea.isHitTestable = false
 			rightTouchArea.isHitTestable = false
+			playButton:removeSelf( )
+			playButton = nil
+			highscoreButton:removeSelf( )
+			highscoreButton = nil
 			timer.performWithDelay( 500, function (...)
 				composer.gotoScene( "level1", "fade", 500)
 				composer.removeHidden( )
@@ -136,22 +140,28 @@ local function onFrame(event)
 		end
 	end
 
-	highscoreButton.hit = particleSystem:rayCast( display.contentWidth, display.contentCenterY ,display.contentCenterX, display.contentCenterY)
-	if highscoreButton.hit then
-		highscoreButton.hp = highscoreButton.hp - 1
-		highscoreButton:setFillColor( highscoreButton.hp/100, highscoreButton.hp/100,  highscoreButton.hp/100)
-		if highscoreButton.hp == 0 then
-			Runtime:removeEventListener( "enterFrame", onFrame )
-			physics.setGravity(0, 0)
-			display.remove(particleSystem)
-			particleSystem = nil
-			leftTouchArea.isHitTestable = false
-			rightTouchArea.isHitTestable = false
-			timer.performWithDelay( 500, function (...)
-				composer.gotoScene( "end", "fade", 500)
-				composer.removeHidden( )
-				composer.removeScene("menu")
-			end )
+	if particleSystem then
+		highscoreButton.hit = particleSystem:rayCast( display.contentWidth, display.contentCenterY ,display.contentCenterX + 100, display.contentCenterY)
+		if highscoreButton.hit then
+			highscoreButton.hp = highscoreButton.hp - 1
+			highscoreButton:setFillColor( highscoreButton.hp/100, highscoreButton.hp/100,  highscoreButton.hp/100)
+			if highscoreButton.hp == 0 then
+				Runtime:removeEventListener( "enterFrame", onFrame )
+				physics.setGravity(0, 0)
+				display.remove(particleSystem)
+				particleSystem = nil
+				leftTouchArea.isHitTestable = false
+				rightTouchArea.isHitTestable = false
+				playButton:removeSelf( )
+				playButton = nil
+				highscoreButton:removeSelf( )
+				highscoreButton = nil
+				timer.performWithDelay( 500, function (...)
+					composer.gotoScene( "end", "fade", 500)
+					composer.removeHidden( )
+					composer.removeScene("menu")
+				end )
+			end
 		end
 	end
 
@@ -165,7 +175,7 @@ function scene:create( event )
 	   filename = "scorefile.txt",
 	})
 
-	local highscore = score.load()
+	score.load()
 
 	musik = audio.loadStream("assets/sound/music/theme.mp3")
 	local optionsSound ={loops = -1}
