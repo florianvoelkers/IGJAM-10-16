@@ -542,6 +542,7 @@ local function dieDevilDie (devil)
 end
 
 local function startShield( ... )
+	audio.play( whaleSound)
 	shield = true
 	shieldCounter = 200
 end
@@ -812,6 +813,7 @@ local function onFrame(event)
 						if v.myName == "flowerPowerUp" then
 							print(fireWorld.hits)
 							print("heal the world")
+							audio.play( flowerSound)
 							fireWorld.hits = fireWorld.hits - 0.1
 							if fireWorld.hits <= 0 then
 								fireWorld.hits = 0
@@ -858,6 +860,9 @@ local function initScene(...)
 	deamonDieSound = audio.loadSound( "assets/sound/effects/dmonDie.wav" )
 	flameDieSound = audio.loadSound( "assets/sound/effects/flameDie.wav" )
 	landingSound = audio.loadSound( "assets/sound/effects/landingDmon.wav" )
+	whaleSound = audio.loadSound( "assets/sound/effects/whaleAktivate.wav" )
+	flowerSound = audio.loadSound( "assets/sound/effects/healsound.wav" )
+
 
 	display.setDefault("isAnchorClamped",false)
 end
