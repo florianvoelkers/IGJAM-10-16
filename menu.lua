@@ -31,6 +31,9 @@ local background1
 local background2
 local background3
 
+local soundOnIcon
+local soundOffIcon
+
 --------------------------------------------
 
 
@@ -80,6 +83,26 @@ local function onTouchRight(event)
 	elseif event.phase == "ended" then
 		left = false
 		right = false
+	end
+end
+
+local function soundOn(event )
+	if event.phase == "ended" then
+		soundOnIcon.isHitTestable = false
+		soundOfIcon.isHitTestable = true
+		soundOnIcon.alpha = 0
+		soundOfIcon.alpha = 1
+		audio.setVolume(0.5)
+	end
+end
+
+local function soundOff( event )
+	if event.phase == "ended" then
+		soundOfIcon.isHitTestable = false
+		soundOnIcon.isHitTestable = true
+		soundOnIcon.alpha = 1
+		soundOfIcon.alpha = 0
+		audio.setVolume(0)
 	end
 end
 
@@ -250,13 +273,12 @@ function scene:create( event )
 	--clouds.timeScale = 0.7
 	clouds.x = world.x
 	clouds.y = world.y
-	--sceneGroup:insert(clouds)
+
 
 	moon = display.newImageRect( "assets/map/moon.png", 123, 123 )
 	moon.x,moon.y = world.x,world.y
 	moon.anchorX = 0.5
 	moon.anchorY = -2.3
-	sceneGroup:insert(moon)
 	
 	-- create/position logo/title image on upper-half of the screen
 	local titleLogo = display.newImageRect( "logo.png", 692, 110 )
@@ -333,14 +355,33 @@ function scene:create( event )
 	rightTouchArea:setFillColor( 1, 1, 1 )
 	rightTouchArea:addEventListener( "touch", onTouchRight )
 
+
+	soundOnIcon = display.newImageRect( "assets/soundOnIcon.png", 111, 111 )
+	soundOnIcon.x ,soundOnIcon.y = 100, display.actualContentHeight-100
+	soundOnIcon:addEventListener( "touch", soundOn )
+
+
+
+	soundOfIcon = display.newImageRect( "assets/soundOfIcon.png", 111, 111 )
+	soundOfIcon.x ,soundOfIcon.y = 100, display.actualContentHeight-100
+	soundOfIcon.isVisible = true
+	soundOfIcon:addEventListener( "touch", soundOff )
+
+
+
 	-- all display objects must be inserted into group
 	sceneGroup:insert( titleLogo )
 	sceneGroup:insert( world )
+	sceneGroup:insert(clouds)
 	sceneGroup:insert( playButton)
 	sceneGroup:insert( moon )
 	sceneGroup:insert( leftSide )
 	sceneGroup:insert( rightSide )
 	sceneGroup:insert( middleBar )
+	sceneGroup:insert(soundOnIcon)
+	sceneGroup:insert(soundOfIcon)
+
+
 	
 	
 end
