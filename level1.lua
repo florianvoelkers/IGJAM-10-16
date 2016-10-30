@@ -156,7 +156,7 @@ local fireBurnSequence = {
 }
 
 local waterSteamSequence = {
-	{name = "waterSteam", frames = {1, 2,3,4,5,6,7}, time = 1800}
+	{name = "waterSteam", frames = {1, 2,3,4,5,6,7}, time = 1800,loopCount = 1}
 }
 
 
@@ -230,14 +230,12 @@ local function createFire( givenAngle )
 end
 
 local function mySpriteListener( event )
-	if ( event.phase == "loop" ) then
+	if ( event.phase == "ended" ) then
 		if event.target then
 			if event.target.id then
 				if steams[event.target.id] then
-					if steams[event.target.id]:removeSelf( ) then
-						steams[event.target.id]:removeSelf( )
-						steams[event.target.id] = nil
-					end
+					steams[event.target.id]:removeSelf( )
+					steams[event.target.id] = nil
 				end
 			end
 		end
@@ -357,25 +355,25 @@ end
 
 local function createFlowerPowerUp(...)
 	local flowerPowerUp = display.newSprite( flowerPowerUpSheet, flowerPowerUpSequence)
-	local spawnArea = math.random( 4 ) -- 1 = left, 2 = bottom, 3 = right, 4 = top
+	local spawnArea = math.random( 400 ) -- 1 = left, 2 = bottom, 3 = right, 4 = top
 	local posX
 	local posY
-	if spawnArea == 1 then
+	if spawnArea <100 then
 		posX = -1 * math.random(100, 200)
 		posY = math.random(screenH)
 		local difY = posY - world.y
 		flowerPowerUp.rotation = 0.125 * - difY + 270
-	elseif spawnArea == 2 then
+	elseif spawnArea <200 then
 		posX = math.random(screenW)
 		posY = math.random (screenH + 100, screenH + 200)
 		local difX = posX - world.x
 		flowerPowerUp.rotation = 9/128 * - difX - 180
-	elseif spawnArea == 3 then
+	elseif spawnArea <300 then
 		posX = math.random(screenW + 100, screenW + 200)
 		posY = math.random(screenH)
 		local difY = posY - world.y
 		flowerPowerUp.rotation = 0.125 * difY + 90
-	elseif spawnArea == 4 then
+	elseif spawnArea <400 then
 		posX = math.random(screenH)
 		posY = -1 * math.random(100, 200)
 		local difX = posX - world.x
