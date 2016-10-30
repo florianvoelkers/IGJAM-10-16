@@ -154,6 +154,7 @@ local function onFrame(event)
 		playButton.hp = playButton.hp - 1
 		playButton:setFillColor( playButton.hp/100, playButton.hp/100,  playButton.hp/100)
 		if playButton.hp == 0 then
+			clouds:removeSelf()
 			Runtime:removeEventListener( "enterFrame", onFrame )
 			physics.setGravity(0, 0)
 			display.remove(particleSystem)
@@ -174,6 +175,7 @@ local function onFrame(event)
 			highscoreButton.hp = highscoreButton.hp - 1
 			highscoreButton:setFillColor( highscoreButton.hp/100, highscoreButton.hp/100,  highscoreButton.hp/100)
 			if highscoreButton.hp == 0 then
+				clouds:removeSelf()
 				Runtime:removeEventListener( "enterFrame", onFrame )
 				physics.setGravity(0, 0)
 				display.remove(particleSystem)
@@ -233,13 +235,10 @@ function scene:create( event )
 	sceneGroup:insert( background2 )
 	sceneGroup:insert( background3 )
 
-	world = display.newSprite( earthDestructionSheet, earthDestructionSequence)
+	world = display.newImageRect( "assets/map/earthfinal.png", 350, 350 )
 	world.x = display.contentCenterX
 	world.y = display.contentCenterY
 	sceneGroup:insert(world)
-	--world.alpha = 0
-	world:setSequence( "stage1" )
-	--world:play()
 	world.myName = "world"
 	physics.addBody( world, "static",{radius=178}  )
 	
@@ -248,11 +247,10 @@ function scene:create( event )
 	clouds = display.newSprite( cloudSheet, cloudSheetSequence)
 	clouds:setSequence( "cloudMove" )
 	clouds:play()
-	clouds.timeScale = 0.7
+	--clouds.timeScale = 0.7
 	clouds.x = world.x
 	clouds.y = world.y
-	clouds:toFront()
-	sceneGroup:insert(clouds)
+	--sceneGroup:insert(clouds)
 
 	moon = display.newImageRect( "assets/map/moon.png", 123, 123 )
 	moon.x,moon.y = world.x,world.y
