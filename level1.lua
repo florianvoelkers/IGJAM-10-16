@@ -50,6 +50,11 @@ local clouds
 local dmnonDamage
 local dmonMaxDamage
 
+local shield
+local shieldCounter
+
+local shieldImage
+
 
 --------------------------------------------
 
@@ -468,6 +473,11 @@ local function dieDevilDie (devil)
 	dyingDevil:addEventListener( "sprite", onDevilDeadListener )
 end
 
+local function startShield( ... )
+	shield = true
+	shieldCounter = 200
+end
+
 local function onFrame(event)
 
 	if event.time/1000 < 20 then
@@ -480,6 +490,17 @@ local function onFrame(event)
 		spawnAfter = 150
 	elseif event.time/1000 < 100 then
 		spawnAfter = 100
+	end
+
+	if shield then
+		shieldCounter = shieldCounter -1
+		if shieldCounter < 1 then
+			shield = false
+			--shieldImage.alpha = 0
+			dmonDamage = dmonMaxDamage
+		end
+		dmonDamage = 0
+		--shieldImage.alpha = 1
 	end
 
 	background1.x = background1.x -0.5
@@ -753,6 +774,8 @@ local function initScene(...)
 	steams = {}
 	dmonMaxDamage = 0.000035
 	dmonDamage = dmonMaxDamage
+
+	shield = false
 	
 	deamonDieSound = audio.loadSound( "assets/sound/effects/dmonDie.wav" )
 	flameDieSound = audio.loadSound( "assets/sound/effects/flameDie.wav" )
@@ -830,6 +853,11 @@ function scene:create( event )
 	clouds.x = halfW
 	clouds.y = halfH
 	worldGroup:insert(clouds)
+
+	shieldImage = display.newImageRect( worldGroup, "assets/powerups/shield.png", 357, 357 )
+	shieldImage.x = halfW
+	shieldImage.y = halfH
+	shieldImage.alpha = 0
 
 	leftSide = display.newRect( worldGroup, world.x,world.y, 600, 90 )
 	leftSide.alpha=0
