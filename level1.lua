@@ -594,9 +594,9 @@ local function onFrame( )
 						world:setSequence( "stage2" )
 					elseif fireWorld.alpha > 0.35 and fireWorld.alpha < 0.5 then
 						world:setSequence( "stage3" )
-					elseif fireWorld.alpha > 0.50 and fireWorld.alpha < 0.60 then
+					elseif fireWorld.alpha > 0.55 and fireWorld.alpha < 0.65 then
 						world:setSequence( "stage4" )
-					elseif fireWorld.alpha > 0.75 and fireWorld.alpha < 0.80 then
+					elseif fireWorld.alpha > 0.80 and fireWorld.alpha < 0.85 then
 						world:setSequence( "stage5" )
 					end
 
@@ -847,7 +847,8 @@ function scene:create( event )
 
 	physics.addBody( middleBar, "static" )
 
-	particleSystem = physics.newParticleSystem{
+	timer.performWithDelay( 800, function (...)
+		particleSystem = physics.newParticleSystem{
 		filename = "assets/liquidParticle.png",
 		radius = 3,
 		imageRadius = 5,
@@ -858,16 +859,23 @@ function scene:create( event )
 	    {
 	        flags = { "water" , "fixtureContactListener"},
 	        x = world.x,
-	        y = world.y+world.height/2 + 4,
+	        y = world.y+world.height/2 + 6,
 	        halfWidth = 18,
-	        halfHeight = 18
+	        halfHeight = 18,
+	        outline = (graphics.newOutline( 2, "assets/triangle.png"))
 	   	    }
 	)
 	particleSystem.myName = "Wasser"
+								
 
 	Runtime:addEventListener( "enterFrame", spawnDevil)
 
-	Runtime:addEventListener( "enterFrame", onFrame )
+	Runtime:addEventListener( "enterFrame", onFrame )					
+							end )
+
+
+
+
 
 	local leftTouchArea = display.newRect( 0, 0, display.actualContentWidth * 0.5, display.actualContentHeight )
 	leftTouchArea.anchorX, leftTouchArea.anchorY = 0, 0
