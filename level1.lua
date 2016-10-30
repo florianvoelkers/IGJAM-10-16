@@ -47,6 +47,9 @@ local background3
 local scoreText
 local clouds
 
+local dmnonDamage
+local dmonMaxDamage
+
 
 --------------------------------------------
 
@@ -549,7 +552,7 @@ local function onFrame( )
 
 	for k,v in pairs (fires) do
 		v.fireCounter = v.fireCounter -1
-		fireWorld.hits = fireWorld.hits + 0.00001
+		fireWorld.hits = fireWorld.hits + dmonDamage/2
 		if v.fireCounter == 0 then
 			v.fireCounter = math.random(300,400)
 			createFire(v.rotation)
@@ -588,7 +591,7 @@ local function onFrame( )
 		if v then
 			if v.rotation then
 				if v.fireOn then
-					fireWorld.hits = fireWorld.hits + 0.00002
+					fireWorld.hits = fireWorld.hits + dmonDamage
 					fireWorld.alpha = fireWorld.hits
 					if fireWorld.alpha > 0.15 and fireWorld.alpha < 0.2 then
 						world:setSequence( "stage2" )
@@ -737,11 +740,14 @@ local function initScene(...)
 	left = false
 	right = false
 	speed = 0
-	maxspeed = 0.5
+	maxspeed = 0.42
 	scorePoints = 0
 	goToEnd = false
 	fires = {}
 	steams = {}
+	dmonMaxDamage = 0.000035
+	dmonDamage = dmonMaxDamage
+	
 	deamonDieSound = audio.loadSound( "assets/sound/effects/dmonDie.wav" )
 	flameDieSound = audio.loadSound( "assets/sound/effects/flameDie.wav" )
 	landingSound = audio.loadSound( "assets/sound/effects/landingDmon.wav" )
