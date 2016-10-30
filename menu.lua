@@ -34,6 +34,10 @@ local background3
 local soundOnIcon
 local soundOffIcon
 
+local mainDemon
+local mainDemon2
+
+
 --------------------------------------------
 
 
@@ -60,12 +64,32 @@ local earthDestructionSequence = {
 	{name = "stage5", frames = {5}}
 }
 
+local devilIdleSheetOptions = {
+    width = 60,
+    height = 75,
+    numFrames = 10,
+    sheetContentWidth = 600,
+    sheetContentHeight = 75
+}
+
 local cloudSheetSequence = {
 	{name = "cloudMove", frames = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, time = 2500}
 }
 
+local devilIdleSequence = {
+	{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 },
+	{name = "devilFire", frames = { 7,8,9,10 }, time = 1600 }
+
+}
+
+
 local earthDestructionSheet = graphics.newImageSheet("assets/map/earth_destruction_sheet.png", earthDestructionOptions)
 local cloudSheet = graphics.newImageSheet("assets/map/clouds/clouds_spritesheet.png", cloudSheetOptions)
+local devilIdleFireSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_fire_spritesheet.png", devilIdleSheetOptions )
+
+
+
+
 
 local function onTouchLeft(event)
 	if event.phase == "began" then
@@ -376,6 +400,22 @@ function scene:create( event )
 	soundOfIcon:addEventListener( "touch", soundOff )
 
 
+	mainDemon= display.newSprite( devilIdleFireSheet, devilIdleSequence)
+	mainDemon:setSequence( "devilIdle" )
+	mainDemon:play()
+	--clouds.timeScale = 0.7
+	mainDemon.x = titleLogo.x - titleLogo.width/2 + 56
+	mainDemon.y = titleLogo.y - titleLogo.height/2
+
+
+	mainDemon2= display.newSprite( devilIdleFireSheet, devilIdleSequence)
+	mainDemon2:setSequence( "devilIdle" )
+	mainDemon2:play()
+	--clouds.timeScale = 0.7
+	mainDemon2.x = titleLogo.x + titleLogo.width/2 -104
+	mainDemon2.y = titleLogo.y - titleLogo.height/2 +18
+
+
 
 	-- all display objects must be inserted into group
 	sceneGroup:insert( titleLogo )
@@ -388,7 +428,8 @@ function scene:create( event )
 	sceneGroup:insert( middleBar )
 	sceneGroup:insert(soundOnIcon)
 	sceneGroup:insert(soundOfIcon)
-
+	sceneGroup:insert(mainDemon)
+	sceneGroup:insert(mainDemon2)
 
 	
 	
