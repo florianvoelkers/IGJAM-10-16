@@ -136,6 +136,25 @@ local function onFrame(event)
 		end
 	end
 
+	highscoreButton.hit = particleSystem:rayCast( display.contentWidth, display.contentCenterY ,display.contentCenterX, display.contentCenterY)
+	if highscoreButton.hit then
+		highscoreButton.hp = highscoreButton.hp - 1
+		highscoreButton:setFillColor( highscoreButton.hp/100, highscoreButton.hp/100,  highscoreButton.hp/100)
+		if highscoreButton.hp == 0 then
+			Runtime:removeEventListener( "enterFrame", onFrame )
+			physics.setGravity(0, 0)
+			display.remove(particleSystem)
+			particleSystem = nil
+			leftTouchArea.isHitTestable = false
+			rightTouchArea.isHitTestable = false
+			timer.performWithDelay( 500, function (...)
+				composer.gotoScene( "end", "fade", 500)
+				composer.removeHidden( )
+				composer.removeScene("menu")
+			end )
+		end
+	end
+
 end
 
 function scene:create( event )
@@ -199,6 +218,10 @@ function scene:create( event )
 	playButton = display.newImageRect( "assets/play.png", 100, 100 )
 	playButton.x, playButton.y = display.contentCenterX - world.width * 0.5 - 25, display.contentCenterY
 	playButton.hp = 100
+
+	highscoreButton = display.newImageRect( "assets/highscore.png", 100, 100 )
+	highscoreButton.x, highscoreButton.y = display.contentCenterX + world.width * 0.5 + 25, display.contentCenterY
+	highscoreButton.hp = 100
 
 	leftSide = display.newRect( world.x,world.y, 600, 90 )
 	leftSide.alpha=0

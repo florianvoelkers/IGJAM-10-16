@@ -130,11 +130,11 @@ local cloudSheetOptions = {
 }
 
 local flowerPowerUpOptions = {
-	width = 30,
-    height = 58,
-    numFrames = 3,
-    sheetContentWidth = 120,
-    sheetContentHeight = 58
+	width = 60,
+    height = 120,
+    numFrames = 4,
+    sheetContentWidth = 240,
+    sheetContentHeight = 120
 }
 
 
