@@ -13,6 +13,7 @@ local score = require( "score" )
 local widget = require "widget"
 
 local world
+local clouds
 local moon
 local playButton
 local highscoreButton
@@ -31,6 +32,37 @@ local background2
 local background3
 
 --------------------------------------------
+
+
+local earthDestructionOptions = {
+    width = 350,
+    height = 350,
+    numFrames = 5,
+    sheetContentWidth = 1750,
+    sheetContentHeight = 350
+}
+
+local cloudSheetOptions = {
+    width = 350,
+    height = 350,
+    numFrames = 11,
+    sheetContentWidth = 3850,
+    sheetContentHeight = 350
+}
+local earthDestructionSequence = {
+	{name = "stage1", frames = {1}},
+	{name = "stage2", frames = {2}},
+	{name = "stage3", frames = {3}},
+	{name = "stage4", frames = {4}},
+	{name = "stage5", frames = {5}}
+}
+
+local cloudSheetSequence = {
+	{name = "cloudMove", frames = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, time = 2500}
+}
+
+local earthDestructionSheet = graphics.newImageSheet("assets/map/earth_destruction_sheet.png", earthDestructionOptions)
+local cloudSheet = graphics.newImageSheet("assets/map/clouds/clouds_spritesheet.png", cloudSheetOptions)
 
 local function onTouchLeft(event)
 	if event.phase == "began" then
@@ -122,6 +154,7 @@ local function onFrame(event)
 		playButton.hp = playButton.hp - 1
 		playButton:setFillColor( playButton.hp/100, playButton.hp/100,  playButton.hp/100)
 		if playButton.hp == 0 then
+			clouds:removeSelf()
 			Runtime:removeEventListener( "enterFrame", onFrame )
 			physics.setGravity(0, 0)
 			display.remove(particleSystem)
@@ -141,11 +174,12 @@ local function onFrame(event)
 	end
 
 	if particleSystem then
-		highscoreButton.hit = particleSystem:rayCast( display.contentWidth, display.contentCenterY ,display.contentCenterX + 100, display.contentCenterY)
+		highscoreButton.hit = particleSystem:rayCast( display.contentWidth, display.contentCenterY ,display.contentCenterX, display.contentCenterY)
 		if highscoreButton.hit then
 			highscoreButton.hp = highscoreButton.hp - 1
 			highscoreButton:setFillColor( highscoreButton.hp/100, highscoreButton.hp/100,  highscoreButton.hp/100)
 			if highscoreButton.hp == 0 then
+				clouds:removeSelf()
 				Runtime:removeEventListener( "enterFrame", onFrame )
 				physics.setGravity(0, 0)
 				display.remove(particleSystem)
@@ -209,16 +243,28 @@ function scene:create( event )
 	sceneGroup:insert( background2 )
 	sceneGroup:insert( background3 )
 
-	world = display.newImageRect("assets/map/earth.png", 346, 346 )
+	world = display.newImageRect( "assets/map/earthfinal.png", 350, 350 )
 	world.x = display.contentCenterX
 	world.y = display.contentCenterY
+	sceneGroup:insert(world)
 	world.myName = "world"
 	physics.addBody( world, "static",{radius=178}  )
+	
+
+
+	clouds = display.newSprite( cloudSheet, cloudSheetSequence)
+	clouds:setSequence( "cloudMove" )
+	clouds:play()
+	--clouds.timeScale = 0.7
+	clouds.x = world.x
+	clouds.y = world.y
+	--sceneGroup:insert(clouds)
 
 	moon = display.newImageRect( "assets/map/moon.png", 123, 123 )
 	moon.x,moon.y = world.x,world.y
 	moon.anchorX = 0.5
 	moon.anchorY = -2.3
+	sceneGroup:insert(moon)
 	
 	-- create/position logo/title image on upper-half of the screen
 	local titleLogo = display.newImageRect( "logo.png", 692, 110 )
