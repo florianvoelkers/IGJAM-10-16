@@ -79,11 +79,11 @@ local devilFlySheetOptions = {
 }
 
 local explosionSheetOptions = {
-	width = 50,
-    height = 60,
+	width = 100,
+    height = 120,
     numFrames = 6,
-    sheetContentWidth = 300,
-    sheetContentHeight = 60
+    sheetContentWidth = 600,
+    sheetContentHeight = 120
 }
 
 
@@ -317,7 +317,7 @@ end
 local function setOfExplosion(devilObject, otherObject)
 	local explosion = display.newSprite( explosionSheet, explosionSequence)
 	explosion.x, explosion.y = earth2.x, earth2.y
-	explosion.anchorX, explosion.anchorY = 0.5, 3.6
+	explosion.anchorX, explosion.anchorY = 0.5, 2.2
 	local difX = devilObject.x - otherObject.x
 	local difY = devilObject.y - otherObject.y
 	if difY <= 0 then
