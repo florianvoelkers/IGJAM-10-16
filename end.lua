@@ -69,6 +69,7 @@ function scene:create( event )
 
 	highestScore = display.newImageRect( "assets/highestScore.png", display.contentWidth, display.contentHeight )
 	highestScore.x, highestScore.y  = display.contentCenterX, display.contentCenterY
+	score:load()
 	local scoreTable = score:get()
 	table.sort(scoreTable)
 	local scoreGroup = display.newGroup( )

@@ -12,14 +12,6 @@ function M.init( options )
    opt.leadingZeros = customOptions.leadingZeros or false
    M.filename = customOptions.filename or "scorefile.txt"
 
-   -- if M.load() then
-   --    for i = 1, #M.score do
-   --       print(M.score[i])
-   --    end
-   -- else
-   --    print("empty")
-   -- end
-
    local prefix = ""
    if ( opt.leadingZeros ) then 
       prefix = "0"
@@ -50,7 +42,7 @@ function M.save()
    if ( file ) then
       local contents = ""
       for i = 1, #M.score do
-         contents = contents .. tostring( M.score[i] ) .. ";"
+         contents = contents..tostring( M.score[i] )
       end
       file:write( contents )
       io.close( file )
@@ -68,11 +60,9 @@ function M.load()
    if ( file ) then
       -- Read all contents of file into a string
       local contents = file:read( "*a" )
-      for value in string.gmatch(contents , '([^;]+)') do
-         M.score[#M.score+1] = tonumber(value)
-      end
+      local score = tonumber(contents);
       io.close( file )
-      return true
+      return score
    else
       print( "Error: could not read scores from ", M.filename, "." )
    end
