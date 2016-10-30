@@ -15,10 +15,10 @@ local sceneGroup
 local physics = require "physics"
 local moon 
 local speed
-local devils = {}
-local flyingDevils = {}
-local flowerPowerUps = {}
-local powerUps = {}
+local devils
+local flyingDevils
+local flowerPowerUps
+local powerUps
 local world
 local earth2
 local left
@@ -29,13 +29,14 @@ local rightSide
 local middleBar
 local devilIdle
 local particleSystem
-local ray = {}
+local ray
 local fireWorld
 local scorePoints
 local goToEnd
 local fireCounter
 local fires
 local steams
+local angle
 
 local deamonDieSound
 local flameDieSound
@@ -52,15 +53,10 @@ display.setStatusBar( display.HiddenStatusBar )
 
 
 -- forward declarations and other locals
-local screenW, screenH, halfW = display.contentWidth, display.contentHeight, display.contentCenterX
+local screenW, screenH, halfW, halfH = display.contentWidth, display.contentHeight, display.contentCenterX, display.contentCenterY
 
-local pressedTimer = 0
-local spawnTimer = 0
-local spawnAfter = 300
-local devilsCounter = 0
-local flyingDevilsCounter = 0
-local flowerPowerUpCounter = 0
-local powerUpCounter = 0
+local spawnTimer
+local spawnAfter
 
 local devilIdleSheetOptions = {
     width = 60,
@@ -190,40 +186,6 @@ local earthDestructionSheet = graphics.newImageSheet("assets/map/earth_destructi
 local cloudSheet = graphics.newImageSheet("assets/map/clouds/clouds_spritesheet.png", cloudSheetOptions)
 local flowerPowerUpSheet = graphics.newImageSheet( "assets/powerups/blume_powerup_spritesheet.png", flowerPowerUpOptions )
 
-
-local function onMove (event)
-	pressedTimer = pressedTimer + 1
-end
-
-local function onKeyEvent (event)
-	if event.keyName == "left" then
-		if event.phase == "down" then
-			Runtime:addEventListener( "enterFrame", onMove )
-		elseif event.phase == "up" then
-			Runtime:removeEventListener( "enterFrame", onMove )
-			print(pressedTimer)
-			pressedTimer = 0
-		end
-	elseif event.keyName == "right" then
-		if event.phase == "down" then
-			Runtime:addEventListener( "enterFrame", onMove )
-		elseif event.phase == "up" then
-			Runtime:removeEventListener( "enterFrame", onMove )
-			print(pressedTimer)
-			pressedTimer = 0
-		end
-	elseif event.keyName == "escape" then
-		physics.stop( )
-		Runtime:removeEventListener( "key", onKeyEvent )
-		timer.performWithDelay( 5000, function (...)
-			composer.gotoScene( "end" )
-			composer.removeHidden() 
-			composer.removeScene( "level1" )
-		end )
-		
-	end
-end
-
 local function onTouchLeft(event)
 	if event.phase == "began" then
 		left = true
@@ -244,16 +206,16 @@ local function onTouchRight(event)
 	end
 end
 
-local function createFire( angle )
-	local fireAngle = angle
+local function createFire( givenAngle )
+	local fireAngle = givenAngle
 	fires[#fires+1] = {}
 	fires[#fires] = display.newSprite( fireBurnSheet, fireBurnSequence )
 	fires[#fires].x, fires[#fires].y = world.x, world.y
 	fires[#fires].anchorX, fires[#fires].anchorY = 0.4, 2.5
-	if math.random( ) == 1 then
+	if math.random() == 1 then
 		fireAngle = fireAngle - 10
 	else
-		fireAngle = fireAngle +10
+		fireAngle = fireAngle + 10
 	end
 	fires[#fires].rotation = fireAngle
 	fires[#fires]:setSequence( "fireBurn" )
@@ -262,8 +224,6 @@ local function createFire( angle )
 	fires[#fires].hp = 50
 	sceneGroup:insert(fires[#fires])
 end
-
-
 
 local function mySpriteListener( event )
 	if ( event.phase == "loop" ) then
@@ -279,12 +239,12 @@ local function mySpriteListener( event )
 end
 
       
-local function createSteam( angle )
+local function createSteam( givenAngle )
 	steams[#steams+1] = {}
 	steams[#steams] = display.newSprite( waterSteamSheet,waterSteamSequence )
 	steams[#steams].x, steams[#steams].y = world.x, world.y
 	steams[#steams].anchorX, steams[#steams].anchorY = 0.4, 3
-	steams[#steams].rotation = angle
+	steams[#steams].rotation = givenAngle
 	steams[#steams].id = #steams
 	steams[#steams]:setSequence( "waterSteam" )
 	steams[#steams]:play()
@@ -298,20 +258,18 @@ local function createDevil(rotation)
 	local devilIdle = display.newSprite( devilIdleFireSheet, devilIdleSequence )
 	devilIdle.x, devilIdle.y = world.x, world.y
 	devilIdle.anchorX, devilIdle.anchorY = 0.4, 3
-	--local randomSpawn = math.random(360)
 	devilIdle.rotation = rotation
 	return devilIdle
 end
 
 local function setDevil(rotation)
-	devilsCounter = devilsCounter + 1
-	devils[devilsCounter] = createDevil(rotation)
-	devils[devilsCounter].hp = 100
-	sceneGroup:insert(devils[devilsCounter])
-	devils[devilsCounter]:setSequence( "devilIdle" )
-	devils[devilsCounter]:play()
-	devils[devilsCounter].fireCounter = math.random( 200,300 )
-	devils[devilsCounter].fireOn = false
+	devils[#devils+1] = createDevil(rotation)
+	devils[#devils].hp = 100
+	sceneGroup:insert(devils[#devils])
+	devils[#devils]:setSequence( "devilIdle" )
+	devils[#devils]:play()
+	devils[#devils].fireCounter = math.random( 200,300 )
+	devils[#devils].fireOn = false
 end
 
 local function createFlyingDevil(...)
@@ -321,21 +279,21 @@ local function createFlyingDevil(...)
 	local posY
 	if spawnArea == 1 then
 		posX = -1 * math.random(100, 200)
-		posY = math.random(display.contentHeight)
+		posY = math.random(screenH)
 		local difY = posY - world.y
 		flyingDevil.rotation = 1/8 * -1 * difY + 270 + 180
 	elseif spawnArea == 2 then
-		posX = math.random(display.contentWidth)
-		posY = math.random (display.contentHeight + 100, display.contentHeight + 200)
+		posX = math.random(screenW)
+		posY = math.random (screenH + 100, screenH + 200)
 		local difX = posX - world.x
 		flyingDevil.rotation = 9/128 * -1 * difX
 	elseif spawnArea == 3 then
-		posX = math.random(display.contentWidth + 100, display.contentWidth + 200)
-		posY = math.random(display.contentHeight)
+		posX = math.random(screenW + 100, screenW + 200)
+		posY = math.random(screenH)
 		local difY = posY - world.y
 		flyingDevil.rotation = 1/8 * difY + 90 + 180
 	elseif spawnArea == 4 then
-		posX = math.random(display.contentHeight)
+		posX = math.random(screenH)
 		posY = -1 * math.random(100, 200)
 		local difX = posX - world.x
 		flyingDevil.rotation = 9/128 * difX + 180
@@ -398,21 +356,21 @@ local function createFlowerPowerUp(...)
 	local posY
 	if spawnArea == 1 then
 		posX = -1 * math.random(100, 200)
-		posY = math.random(display.contentHeight)
+		posY = math.random(screenH)
 		local difY = posY - world.y
 		flowerPowerUp.rotation = 1/8 * -1 * difY + 270
 	elseif spawnArea == 2 then
-		posX = math.random(display.contentWidth)
-		posY = math.random (display.contentHeight + 100, display.contentHeight + 200)
+		posX = math.random(screenW)
+		posY = math.random (screenH + 100, screenH + 200)
 		local difX = posX - world.x
 		flowerPowerUp.rotation = 9/128 * -1 * difX - 180
 	elseif spawnArea == 3 then
-		posX = math.random(display.contentWidth + 100, display.contentWidth + 200)
-		posY = math.random(display.contentHeight)
+		posX = math.random(screenW + 100, screenW + 200)
+		posY = math.random(screenH)
 		local difY = posY - world.y
 		flowerPowerUp.rotation = 1/8 * difY + 90
 	elseif spawnArea == 4 then
-		posX = math.random(display.contentHeight)
+		posX = math.random(screenH)
 		posY = -1 * math.random(100, 200)
 		local difX = posX - world.x
 		flowerPowerUp.rotation = 9/128 * difX
@@ -426,14 +384,13 @@ local function flyingFlower(flower)
 end
 
 local function spawnFlower(flower)
-	powerUpCounter = powerUpCounter + 1
-	powerUps[powerUpCounter] = display.newSprite( flowerPowerUpSheet, flowerPowerUpSequence )
-	powerUps[powerUpCounter].x, powerUps[powerUpCounter].y = flower.x, flower.y
-	powerUps[powerUpCounter].rotation = flower.rotation 
-	powerUps[powerUpCounter].lifeTime = math.random( 300, 420 )
-	sceneGroup:insert(powerUps[powerUpCounter])
-	powerUps[powerUpCounter]:setSequence( "flowerPowerUp" )
-	powerUps[powerUpCounter]:play()
+	powerUps[#powerUps+1] = display.newSprite( flowerPowerUpSheet, flowerPowerUpSequence )
+	powerUps[#powerUps].x, powerUps[#powerUps].y = flower.x, flower.y
+	powerUps[#powerUps].rotation = flower.rotation 
+	powerUps[#powerUps].lifeTime = math.random( 300, 420 )
+	sceneGroup:insert(powerUps[#powerUps])
+	powerUps[#powerUps]:setSequence( "flowerPowerUp" )
+	powerUps[#powerUps]:play()
 	flower:removeSelf()
 	flower = nil
 end
@@ -458,29 +415,27 @@ local function spawnDevil (event)
 	
 	spawnTimer = spawnTimer + 1
 	if spawnTimer >= spawnAfter then
-		if randomDrop >= 9 then
-			flyingDevilsCounter = flyingDevilsCounter + 1		
-			flyingDevils[flyingDevilsCounter] = createFlyingDevil()
-			sceneGroup:insert(flyingDevils[flyingDevilsCounter])
-			flyingDevils[flyingDevilsCounter]:setSequence( "devilFly" )
-			flyingDevils[flyingDevilsCounter]:play()
-			flyingDevil(flyingDevils[flyingDevilsCounter])
-			physics.addBody( flyingDevils[flyingDevilsCounter], "dynamic", { isSensor = true } )
-			flyingDevils[flyingDevilsCounter].collision = onFlyingDevilCollision
-			flyingDevils[flyingDevilsCounter].myName = "devil"
-			flyingDevils[flyingDevilsCounter]:addEventListener( "collision")
+		if randomDrop <= 9 then		
+			flyingDevils[#flyingDevils+1] = createFlyingDevil()
+			sceneGroup:insert(flyingDevils[#flyingDevils])
+			flyingDevils[#flyingDevils]:setSequence( "devilFly" )
+			flyingDevils[#flyingDevils]:play()
+			flyingDevil(flyingDevils[#flyingDevils])
+			physics.addBody( flyingDevils[#flyingDevils], "dynamic", { isSensor = true } )
+			flyingDevils[#flyingDevils].collision = onFlyingDevilCollision
+			flyingDevils[#flyingDevils].myName = "devil"
+			flyingDevils[#flyingDevils]:addEventListener( "collision")
 		else
-			flowerPowerUpCounter = flowerPowerUpCounter + 1
-			flowerPowerUps[flowerPowerUpCounter] = createFlowerPowerUp()
-			sceneGroup:insert(flowerPowerUps[flowerPowerUpCounter])
-			flowerPowerUps[flowerPowerUpCounter]:setSequence( "flowerPowerUp" )
-			flowerPowerUps[flowerPowerUpCounter]:play()
-			flyingFlower(flowerPowerUps[flowerPowerUpCounter])
-			physics.addBody( flowerPowerUps[flowerPowerUpCounter], "dynamic", { isSensor = true } )
-			flowerPowerUps[flowerPowerUpCounter].type = "flowerPowerUp"
-			flowerPowerUps[flowerPowerUpCounter].collision = onFlyingFlowerPowerUpCollision
-			flowerPowerUps[flowerPowerUpCounter].myName = "flowerPowerUp"
-			flowerPowerUps[flowerPowerUpCounter]:addEventListener( "collision")
+			flowerPowerUps[#flowerPowerUps+1] = createFlowerPowerUp()
+			sceneGroup:insert(flowerPowerUps[#flowerPowerUps])
+			flowerPowerUps[#flowerPowerUps]:setSequence( "flowerPowerUp" )
+			flowerPowerUps[#flowerPowerUps]:play()
+			flyingFlower(flowerPowerUps[#flowerPowerUps])
+			physics.addBody( flowerPowerUps[#flowerPowerUps], "dynamic", { isSensor = true } )
+			flowerPowerUps[#flowerPowerUps].type = "flowerPowerUp"
+			flowerPowerUps[#flowerPowerUps].collision = onFlyingFlowerPowerUpCollision
+			flowerPowerUps[#flowerPowerUps].myName = "flowerPowerUp"
+			flowerPowerUps[#flowerPowerUps]:addEventListener( "collision")
 		end
 		spawnTimer = 0
 	end	
@@ -517,14 +472,14 @@ local function onFrame( )
 	background2.x = background2.x -0.5
 	background3.x = background3.x -0.5
 
-	if background1.x < -display.contentCenterX then
-		background1.x = 2*display.contentCenterX
+	if background1.x < -halfW then
+		background1.x = 2*halfW
 	end
-	if background2.x < -display.contentCenterX then
-		background2.x = 2*display.contentCenterX
+	if background2.x < -halfW then
+		background2.x = 2*halfW
 	end
-	if background3.x < -display.contentCenterX then
-		background3.x = 2*display.contentCenterX
+	if background3.x < -halfW then
+		background3.x = 2*halfW
 	end
 
 	for k,v in pairs(powerUps) do
@@ -666,12 +621,10 @@ local function onFrame( )
 							score.set( scorePoints )
 							score.save()
 							display.remove( particleSystem )
-							Runtime:removeEventListener( "key", onKeyEvent )
-							Runtime:removeEventListener( "enterFrame", onMove)
 							Runtime:removeEventListener( "enterFrame", spawnDevil)
 							print("Game Over")
-							local gameOver = display.newImageRect( "assets/gameOver.png", display.contentWidth, display.contentHeight )
-							gameOver.x, gameOver.y = display.contentCenterX, display.contentCenterY
+							local gameOver = display.newImageRect( "assets/gameOver.png", screenW, screenH )
+							gameOver.x, gameOver.y = halfW, halfH
 							transition.blink( gameOver, {time = 500} )
 							timer.performWithDelay( 5000, function (...)
 								gameOver:removeSelf( )
@@ -740,12 +693,70 @@ local function onFrame( )
 			end
 		end
 	end
+
+	-- for k,v in pairs(powerUps) do
+	-- 	if not goToEnd then
+	-- 		if v.rotation then
+	-- 			print(v.rotation, v.x, v.y)
+	-- 			local posX = math.cos(math.rad(v.rotation + 90)) * world.width * 0.5 + world.x
+	-- 			local posY = math.sin(math.rad(v.rotation - 90)) * world.width * 0.5 + world.y
+	-- 			print(posX, posY)
+	-- 			drawHitLine( posX - 50, posY - 50, posX + 50, posY + 50)
+	-- 			v.hasHitLine = true
+	-- 			print("has hitline")
+				
+	-- 		end
+	-- 		-- powerUps[k].hit = particleSystem
+	-- 		-- angle = powerUps[k].rotation - 90
+	-- 		-- x = world.x + (world.width/2 * math.cos(math.rad(angle)))
+	-- 		-- y = world.y + (world.width/2 * math.sin(math.rad(angle)))
+	-- 		-- if devils[k].rotation > 180 and devils[k].rotation < 270 then
+	-- 		-- 	devils[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
+	-- 		-- elseif devils[k].rotation > 0 and devils[k].rotation < 90  then
+	-- 		-- 	devils[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
+	-- 		-- else
+	-- 		-- 	devils[k].hit = particleSystem:rayCast( x-20, y-20, x+20, y+20 )
+	-- 		-- end
+
+	-- 		-- if devils[k].hit then
+	-- 		-- 	if devils[k].isVisible then
+	-- 		-- 		devils[k].hp = devils[k].hp - 1
+	-- 		-- 		if devils[k].hp == 10 then
+	-- 		-- 			createSteam(devils[k].rotation)
+	-- 		-- 		elseif devils[k].hp == 1 then
+	-- 		-- 			audio.play(deamonDieSound)
+	-- 		-- 			dieDevilDie(devils[k])
+	-- 		-- 			devils[k].isVisible = false
+	-- 		-- 			table.remove(devils, k)
+	-- 		-- 			scorePoints = scorePoints + 1
+	-- 		-- 			print ("score:",scorePoints)
+	-- 		-- 		end
+	-- 		-- 	else
+	-- 		-- 		if devils[k].rotation > 180 and devils[k].rotation < 270 then
+	-- 		-- 			drawHitLine( x-20, y+20, x+20, y-20 )
+	-- 		-- 		elseif devils[k].rotation > 0 and devils[k].rotation < 90  then
+	-- 		-- 			drawHitLine( x-20, y+20, x+20, y-20 )
+	-- 		-- 		else
+	-- 		-- 			drawHitLine( x-20, y-20, x+20, y+20 )
+	-- 		-- 		end
+	-- 		-- 	end
+	-- 		-- end
+	-- 	end
+	-- end
 end
 
 
 
 function scene:create( event )
 
+	devils = {}
+	flyingDevils = {}
+	flowerPowerUps = {}
+	powerUps = {}
+	ray = {}
+
+	spawnTimer = 0
+	spawnAfter = 300
 	left = false
 	right = false
 	speed = 0
@@ -766,24 +777,22 @@ function scene:create( event )
 
 	display.setDefault("isAnchorClamped",false)
 
-	background1 = display.newImageRect( "assets/map/background/1.png", display.contentWidth, display.contentHeight )
-	background1.x = display.contentCenterX
-	background1.y = display.contentCenterY
+	background1 = display.newImageRect( "assets/map/background/1.png", screenW, screenH )
+	background1.x = halfW
+	background1.y = halfH
 
 
-	background2 = display.newImageRect( "assets/map/background/2.png", display.contentWidth, display.contentHeight )
-	background2.x = display.contentCenterX*2
-	background2.y = display.contentCenterY
+	background2 = display.newImageRect( "assets/map/background/2.png", screenW, screenH )
+	background2.x = halfW*2
+	background2.y = halfH
 
-	background3 = display.newImageRect( "assets/map/background/3.png", display.contentWidth, display.contentHeight )
-	background3.x = display.contentCenterX*3
-	background3.y = display.contentCenterY
+	background3 = display.newImageRect( "assets/map/background/3.png", screenW, screenH )
+	background3.x = halfW*3
+	background3.y = halfH
 	
 	sceneGroup:insert( background1 )
 	sceneGroup:insert( background2 )
 	sceneGroup:insert( background3 )
-
-	Runtime:addEventListener( "key", onKeyEvent )
 
 	local worldGroup = display.newGroup()
 
@@ -794,7 +803,7 @@ function scene:create( event )
 	physics.setDrawMode( "normal" )
 
 	earth2 = display.newImageRect (worldGroup, "assets/map/earth.png", 300, 300 )
-	earth2.x, earth2.y = display.contentCenterX, display.contentCenterY
+	earth2.x, earth2.y = halfW, halfH
 	earth2.myName = "earth2"
 	physics.addBody( earth2, "static", { radius = 150, isSensor = true})
 	earth2.alpha = 0
@@ -802,8 +811,8 @@ function scene:create( event )
 	world = display.newSprite( earthDestructionSheet, earthDestructionSequence)
 	world:setSequence( "stage1" )
 	world:play()
-	world.x = display.contentCenterX
-	world.y = display.contentCenterY
+	world.x = halfW
+	world.y = halfH
 	world.myName = "world"
 	worldGroup:insert(world)
 	physics.addBody( world, "static",{radius=178}  )
@@ -815,8 +824,8 @@ function scene:create( event )
 	moon.anchorY = -2.3
 
 	fireWorld = display.newImageRect( worldGroup, "assets/map/earth_shadow.png", 357, 357 )
-	fireWorld.x = display.contentCenterX
-	fireWorld.y = display.contentCenterY
+	fireWorld.x = halfW
+	fireWorld.y = halfH
 	fireWorld.alpha = 0
 	fireWorld.hits = 0
 
@@ -824,8 +833,8 @@ function scene:create( event )
 	clouds:setSequence( "cloudMove" )
 	clouds:play()
 	clouds.timeScale = 0.5
-	clouds.x = display.contentCenterX
-	clouds.y = display.contentCenterY
+	clouds.x = halfW
+	clouds.y = halfH
 	worldGroup:insert(clouds)
 
 
