@@ -389,6 +389,7 @@ local function spawnFlower(flower)
 	powerUps[#powerUps].x, powerUps[#powerUps].y = flower.x, flower.y
 	powerUps[#powerUps].rotation = flower.rotation 
 	powerUps[#powerUps].lifeTime = math.random( 300, 420 )
+	powerUps[#powerUps].hp = 50
 	sceneGroup:insert(powerUps[#powerUps])
 	powerUps[#powerUps]:setSequence( "flowerPowerUp" )
 	powerUps[#powerUps]:play()
@@ -414,7 +415,7 @@ end
 local function spawnDevil (event)	
 	spawnTimer = spawnTimer + 1
 	if spawnTimer >= spawnAfter then
-		if math.random( 10 ) >= 9 then		
+		if math.random( 10 ) <= 7 then		
 			flyingDevils[#flyingDevils+1] = createFlyingDevil()
 			sceneGroup:insert(flyingDevils[#flyingDevils])
 			flyingDevils[#flyingDevils]:setSequence( "devilFly" )
@@ -477,16 +478,6 @@ local function onFrame( )
 	end
 	if background3.x < -halfW then
 		background3.x = 2*halfW
-	end
-
-	for k,v in pairs(powerUps) do
-		v.lifeTime = v.lifeTime - 1
-		if v.lifeTime == 0 then
-			v:removeSelf( )
-			v = nil
-		elseif v.lifeTime == 200 then
-			transition.blink( v, {time = 1000} )
-		end
 	end
 
 	if 	left == false and right == false and (speed > 0 or speed < 0) then
@@ -675,62 +666,57 @@ local function onFrame( )
 	end
 
 	for k,v in pairs(powerUps) do
+		v.lifeTime = v.lifeTime - 1
+		if v.lifeTime == 200 then
+			transition.blink( v, {time = 1000} )
+		end
+		if v.lifeTime == 0 then
+			v:removeSelf( )
+			v = nil
+		end
+	end
+
+	for k,v in pairs(powerUps) do
 		if not goToEnd then
 			if v.rotation then
-				print(v.rotation, v.x, v.y)
 				local posX = v.x
 				local posY = v.y
-				if v.rotation < -180 and v.rotation > -90 then
-					drawHitLine( posX-40, posY+40, posX+40, posY-40 )
+				if v.rotation > 180 and v.rotation < 90 then
+					v.hit =  particleSystem:rayCast(posX-40, posY+40, posX+40, posY-40 )
 				elseif v.rotation > 0 and v.rotation < 90  then
-					drawHitLine( posX-40, posY+40, posX+40, posY-40 )
+					v.hit =  particleSystem:rayCast(posX-40, posY+40, posX+40, posY-40 )
+				elseif v.rotation < -90 and v.rotation > -180 then
+					v.hit =  particleSystem:rayCast(posX-40, posY+40, posX+40, posY-40 )
+				elseif v.rotation > 180 and v.rotation < 270 then
+					v.hit =  particleSystem:rayCast(posX-40, posY+40, posX+40, posY-40 )
+				elseif v.rotation < -270 and v.rotation > 360 then
+					v.hit =  particleSystem:rayCast(posX-40, posY+40, posX+40, posY-40 )
 				else
-					drawHitLine( posX-40, posY-40, posX+40, posY+40 )
+					v.hit =  particleSystem:rayCast(posX-40, posY-40, posX+40, posY+40 )
 				end
-				-- local posX = math.cos(math.rad(v.rotation + 90)) * world.width * 0.5 + world.x
-				-- local posY = math.sin(math.rad(v.rotation - 90)) * world.width * 0.5 + world.y
-				-- print(posX, posY)
-				--drawHitLine( posX - 50, posY - 50, posX + 50, posY + 50)
+			end
+			if v.hit then
+				if v.isVisible then
+					v.hp = v.hp - 1
+					if v.hp == 0 then
+						v.lifeTime = -1000
+						timer.performWithDelay( 100, function(...)
+							v:removeSelf( )
+							v = nil
+						end )
+						print(fireWorld.hits)
+						print("heal the world")
+						fireWorld.hits = fireWorld.hits - 0.1
+						if fireWorld.hits <= 0 then
+							fireWorld.hits = 0
+						end
+						print(fireWorld.hits)
+
+					end
+				end
 			end
 		end
 	end
-	-- 		-- powerUps[k].hit = particleSystem
-	-- 		-- angle = powerUps[k].rotation - 90
-	-- 		-- x = world.x + (world.width/2 * math.cos(math.rad(angle)))
-	-- 		-- y = world.y + (world.width/2 * math.sin(math.rad(angle)))
-	-- 		-- if v.rotation > 180 and v.rotation < 270 then
-	-- 		-- 	v.hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
-	-- 		-- elseif v.rotation > 0 and v.rotation < 90  then
-	-- 		-- 	v.hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
-	-- 		-- else
-	-- 		-- 	v.hit = particleSystem:rayCast( x-20, y-20, x+20, y+20 )
-	-- 		-- end
-
-	-- 		-- if v.hit then
-	-- 		-- 	if v.isVisible then
-	-- 		-- 		v.hp = v.hp - 1
-	-- 		-- 		if v.hp == 10 then
-	-- 		-- 			createSteam(v.rotation)
-	-- 		-- 		elseif v.hp == 1 then
-	-- 		-- 			audio.play(deamonDieSound)
-	-- 		-- 			dieDevilDie(v)
-	-- 		-- 			v.isVisible = false
-	-- 		-- 			table.remove(devils, k)
-	-- 		-- 			scorePoints = scorePoints + 1
-	-- 		-- 			print ("score:",scorePoints)
-	-- 		-- 		end
-	-- 		-- 	else
-	-- 		-- 		if v.rotation > 180 and v.rotation < 270 then
-	-- 		-- 			drawHitLine( x-20, y+20, x+20, y-20 )
-	-- 		-- 		elseif v.rotation > 0 and v.rotation < 90  then
-	-- 		-- 			drawHitLine( x-20, y+20, x+20, y-20 )
-	-- 		-- 		else
-	-- 		-- 			drawHitLine( x-20, y-20, x+20, y+20 )
-	-- 		-- 		end
-	-- 		-- 	end
-	-- 		-- end
-	-- 	end
-	-- end
 end
 
 local function initScene(...)
