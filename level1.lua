@@ -130,10 +130,10 @@ local cloudSheetOptions = {
 }
 
 local flowerPowerUpOptions = {
-	width = 68,
+	width = 30,
     height = 58,
     numFrames = 3,
-    sheetContentWidth = 204,
+    sheetContentWidth = 120,
     sheetContentHeight = 58
 }
 
@@ -177,7 +177,7 @@ local cloudSheetSequence = {
 }
 
 local flowerPowerUpSequence = {
-	{name = "flowerPowerUp", frames = {1, 2, 3}, time = 600}
+	{name = "flowerPowerUp", frames = {1, 2, 3,4}, time = 800}
 }
 
 local devilFlySheet = graphics.newImageSheet( "assets/character/spritesheets/devil_fly_cube.png", devilFlySheetOptions)
@@ -188,7 +188,7 @@ local waterSteamSheet = graphics.newImageSheet( "assets/character/spritesheets/w
 local develDieSheet = graphics.newImageSheet( "assets/character/spritesheets/dying/deathanim_devil_spritesheet.png", devilDieSheetOptions)
 local earthDestructionSheet = graphics.newImageSheet("assets/map/earth_destruction_sheet.png", earthDestructionOptions)
 local cloudSheet = graphics.newImageSheet("assets/map/clouds/clouds_spritesheet.png", cloudSheetOptions)
-local flowerPowerUpSheet = graphics.newImageSheet( "assets/powerups/blume_powerup_spritesheet.png", flowerPowerUpOptions )
+local flowerPowerUpSheet = graphics.newImageSheet( "assets/powerups/blume_powerup_spritesheet_final.png", flowerPowerUpOptions )
 
 local function onTouchLeft(event)
 	if event.phase == "began" then
