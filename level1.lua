@@ -430,8 +430,10 @@ local function spawnFlower(flower)
 	powerUps[powerUpCounter] = display.newSprite( flowerPowerUpSheet, flowerPowerUpSequence )
 	powerUps[powerUpCounter].x, powerUps[powerUpCounter].y = flower.x, flower.y
 	powerUps[powerUpCounter].rotation = flower.rotation 
+	powerUps[powerUpCounter].lifeTime = math.random( 300, 420 )
 	sceneGroup:insert(powerUps[powerUpCounter])
-	print("delete old flower")
+	powerUps[powerUpCounter]:setSequence( "flowerPowerUp" )
+	powerUps[powerUpCounter]:play()
 	flower:removeSelf()
 	flower = nil
 end
@@ -525,9 +527,16 @@ local function onFrame( )
 		background3.x = 2*display.contentCenterX
 	end
 
-
-
-
+	for k,v in pairs(powerUps) do
+		v.lifeTime = v.lifeTime - 1
+		if v.lifeTime == 0 then
+			print("remove flower")
+			v:removeSelf( )
+			v = nil
+		elseif v.lifeTime == 200 then
+			transition.blink( v, {time = 1000} )
+		end
+	end
 
 	if 	left == false and right == false and (speed > 0 or speed < 0) then
 		if speed >0.01 then
