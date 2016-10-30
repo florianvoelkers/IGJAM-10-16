@@ -32,7 +32,7 @@ local background2
 local background3
 
 local soundOnIcon
-local soundOffIcon
+local soundOfIcon
 
 local mainDemon
 local mainDemon2
@@ -112,21 +112,17 @@ end
 
 local function soundOn(event )
 	if event.phase == "ended" then
-		soundOnIcon.isHitTestable = false
-		soundOfIcon.isHitTestable = true
-		soundOnIcon.alpha = 0
-		soundOfIcon.alpha = 1
-		audio.setVolume(0.5)
+		soundOnIcon.isVisible = false
+		soundOfIcon.isVisible = true
+		audio.setVolume(0)
 	end
 end
 
 local function soundOff( event )
 	if event.phase == "ended" then
-		soundOfIcon.isHitTestable = false
-		soundOnIcon.isHitTestable = true
-		soundOnIcon.alpha = 1
-		soundOfIcon.alpha = 0
-		audio.setVolume(0)
+		soundOnIcon.isVisible = true
+		soundOfIcon.isVisible = false
+		audio.setVolume(0.5)
 	end
 end
 
@@ -390,13 +386,14 @@ function scene:create( event )
 
 	soundOnIcon = display.newImageRect( "assets/soundOfIcon.png", 111, 111 )
 	soundOnIcon.x ,soundOnIcon.y = 100, display.actualContentHeight-100
+	soundOnIcon.isVisible = true
 	soundOnIcon:addEventListener( "touch", soundOn )
 
 
 
 	soundOfIcon = display.newImageRect( "assets/soundOnIcon.png", 111, 111 )
 	soundOfIcon.x ,soundOfIcon.y = 100, display.actualContentHeight-100
-	soundOfIcon.isVisible = true
+	soundOfIcon.isVisible = false
 	soundOfIcon:addEventListener( "touch", soundOff )
 
 

@@ -55,6 +55,7 @@ local shield
 local shieldCounter
 
 local shieldImage
+local timeMeter
 
 
 --------------------------------------------
@@ -549,18 +550,23 @@ end
 
 local function onFrame(event)
 
-	print(fireWorld.hits)
+	print(timeMeter/100)
+	if timeMeter/100< 200 then		
+		timeMeter = timeMeter + 1
+	end
 
-	if event.time/1000 < 20 then
+	if timeMeter/100 < 20 then
 		spawnAfter = 300
-	elseif event.time/1000 < 40 then
+	elseif timeMeter/100 < 40 then
 		spawnAfter = 250 
-	elseif event.time/1000 < 60 then
+	elseif timeMeter/100 < 60 then
 		spawnAfter = 200
-	elseif event.time/1000 < 80 then
+	elseif timeMeter/100 < 80 then
 		spawnAfter = 150
-	elseif event.time/1000 < 100 then
+	elseif timeMeter/100 < 100 then
 		spawnAfter = 100
+	elseif timeMeter/100 < 120 then
+		spawnAfter = 70
 	end
 
 	if shield then
@@ -854,6 +860,8 @@ local function initScene(...)
 	steams = {}
 	dmonMaxDamage = 0.000035
 	dmonDamage = dmonMaxDamage
+
+	timeMeter =0
 
 	shield = false
 	
