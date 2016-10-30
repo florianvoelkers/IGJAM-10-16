@@ -748,7 +748,6 @@ local function onFrame(event)
 							fireWorld.hits = 0
 						end
 						print(fireWorld.hits)
-
 					end
 				end
 			end
