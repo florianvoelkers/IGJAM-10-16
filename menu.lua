@@ -172,7 +172,7 @@ local function onFrame(event)
 	gravityX = nil
 
 
-	playButton.hit = particleSystem:rayCast( 0, display.contentCenterY ,display.contentCenterX, display.contentCenterY)
+	playButton.hit = particleSystem:rayCast( 0, display.contentCenterY ,display.contentCenterX - 100, display.contentCenterY)
 	if playButton.hit then
 		playButton.hp = playButton.hp - 1
 		playButton:setFillColor( playButton.hp/100, playButton.hp/100,  playButton.hp/100)
@@ -184,6 +184,10 @@ local function onFrame(event)
 			particleSystem = nil
 			leftTouchArea.isHitTestable = false
 			rightTouchArea.isHitTestable = false
+			playButton:removeSelf( )
+			playButton = nil
+			highscoreButton:removeSelf( )
+			highscoreButton = nil
 			timer.performWithDelay( 500, function (...)
 				composer.gotoScene( "level1", "fade", 500)
 				composer.removeHidden( )
@@ -205,6 +209,10 @@ local function onFrame(event)
 				particleSystem = nil
 				leftTouchArea.isHitTestable = false
 				rightTouchArea.isHitTestable = false
+				playButton:removeSelf( )
+				playButton = nil
+				highscoreButton:removeSelf( )
+				highscoreButton = nil
 				timer.performWithDelay( 500, function (...)
 					composer.gotoScene( "end", "fade", 500)
 					composer.removeHidden( )
@@ -224,7 +232,7 @@ function scene:create( event )
 	   filename = "scorefile.txt",
 	})
 
-	local highscore = score.load()
+	score.load()
 
 	musik = audio.loadStream("assets/sound/music/theme.mp3")
 	local optionsSound ={loops = -1}
