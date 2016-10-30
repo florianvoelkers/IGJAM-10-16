@@ -18,6 +18,7 @@ local speed
 local devils
 local flyingDevils
 local flowerPowerUps
+local whalePowerUps
 local powerUps
 local world
 local earth2
@@ -142,6 +143,14 @@ local flowerPowerUpOptions = {
     sheetContentHeight = 120
 }
 
+local whalePowerUpOptions = {
+	width = 82,
+    height = 82,
+    numFrames = 4,
+    sheetContentWidth = 328,
+    sheetContentHeight = 82
+}
+
 
 local devilIdleSequence = {
 	{name = "devilIdle", frames = { 1, 2, 3, 4, 5, 6 }, time = 2000 },
@@ -185,6 +194,10 @@ local flowerPowerUpSequence = {
 	{name = "flowerPowerUp", frames = {1, 2, 3,4}, time = 800}
 }
 
+local whalePowerUpSequence = {
+	{name = "whalePowerUp", frames = {1, 2, 3, 4}, time = 800}
+}
+
 local devilFlySheet = graphics.newImageSheet( "assets/character/spritesheets/devil_fly_cube.png", devilFlySheetOptions)
 local explosionSheet = graphics.newImageSheet( "assets/map/explosion/explosion_spritesheet.png", explosionSheetOptions)
 local devilIdleFireSheet = graphics.newImageSheet( "assets/character/spritesheets/devil_Idle_fire_spritesheet.png", devilIdleSheetOptions )
@@ -194,6 +207,7 @@ local develDieSheet = graphics.newImageSheet( "assets/character/spritesheets/dyi
 local earthDestructionSheet = graphics.newImageSheet("assets/map/earth_destruction_sheet.png", earthDestructionOptions)
 local cloudSheet = graphics.newImageSheet("assets/map/clouds/clouds_spritesheet.png", cloudSheetOptions)
 local flowerPowerUpSheet = graphics.newImageSheet( "assets/powerups/blume_powerup_spritesheet_final.png", flowerPowerUpOptions )
+local whalePowerUpSheet = graphics.newImageSheet( "assets/powerups/whale_powerup_spritesheet.png", whalePowerUpOptions)
 
 local function onTouchLeft(event)
 	if event.phase == "began" then
@@ -392,24 +406,23 @@ local function flyingFlower(flower)
 	transition.to( flower, {time = 6000, x = world.x, y = world.y} )
 end
 
-local function spawnFlower(flower)
-	powerUps[#powerUps+1] = display.newSprite( flowerPowerUpSheet, flowerPowerUpSequence )
-	powerUps[#powerUps].x, powerUps[#powerUps].y = flower.x, flower.y
-	powerUps[#powerUps].rotation = flower.rotation 
+local function spawnPowerUp(powerUp)
+	local powerUpType = powerUp.type
+	if powerUpType == "flowerPowerUp" then
+		powerUps[#powerUps+1] = display.newSprite( flowerPowerUpSheet, flowerPowerUpSequence )
+	elseif powerUpType == "whalePowerUp" then
+		powerUps[#powerUps+1] = display.newSprite( whalePowerUpSheet, whalePowerUpSequence )
+	end
+	powerUps[#powerUps].x, powerUps[#powerUps].y = powerUp.x, powerUp.y
+	powerUps[#powerUps].rotation = powerUp.rotation 
 	powerUps[#powerUps].lifeTime = math.random( 300, 420 )
 	powerUps[#powerUps].hp = 50
 	sceneGroup:insert(powerUps[#powerUps])
-	powerUps[#powerUps]:setSequence( "flowerPowerUp" )
+	powerUps[#powerUps]:setSequence( powerUpType )
 	powerUps[#powerUps]:play()
-	flower:removeSelf()
-	flower = nil
-end
-
-local function spawnPowerUp(powerUp)
-	local powerUpType = powerUp.type 
-	if powerUpType == "flowerPowerUp" then
-		spawnFlower(powerUp)
-	end
+	powerUps[#powerUps].myName = powerUp.myName
+	powerUp:removeSelf()
+	powerUp = nil 
 end
 
 local function onFlyingFlowerPowerUpCollision(self, event)
@@ -420,10 +433,52 @@ local function onFlyingFlowerPowerUpCollision(self, event)
 	end
 end
 
+local function createWhalePowerUp(...)
+	local whalePowerUp = display.newSprite( whalePowerUpSheet, whalePowerUpSequence)
+	local spawnArea = math.random( 400 ) -- 1 = left, 2 = bottom, 3 = right, 4 = top
+	local posX
+	local posY
+	if spawnArea <100 then
+		posX = -1 * math.random(100, 200)
+		posY = math.random(screenH)
+		local difY = posY - world.y
+		whalePowerUp.rotation = 0.125 * - difY + 270
+	elseif spawnArea <200 then
+		posX = math.random(screenW)
+		posY = math.random (screenH + 100, screenH + 200)
+		local difX = posX - world.x
+		whalePowerUp.rotation = 9/128 * - difX - 180
+	elseif spawnArea <300 then
+		posX = math.random(screenW + 100, screenW + 200)
+		posY = math.random(screenH)
+		local difY = posY - world.y
+		whalePowerUp.rotation = 0.125 * difY + 90
+	elseif spawnArea <400 then
+		posX = math.random(screenH)
+		posY = -1 * math.random(100, 200)
+		local difX = posX - world.x
+		whalePowerUp.rotation = 9/128 * difX
+	end
+	whalePowerUp.x, whalePowerUp.y = posX, posY
+	return whalePowerUp
+end
+
+local function flyingWhale(whale)
+	transition.to( whale, {time = 6000, x = world.x, y = world.y} )
+end
+
+local function onFlyingWhalePowerUpCollision(self, event)
+	if event.other.myName then
+		if event.other.myName == "earth2" then
+			spawnPowerUp(self)
+		end
+	end
+end
+
 local function spawnDevil (event)	
 	spawnTimer = spawnTimer + 1
 	if spawnTimer >= spawnAfter then
-		if math.random( 10 ) <= 7 then		
+		if math.random( 42, 52 ) <= 48 then		
 			flyingDevils[#flyingDevils+1] = createFlyingDevil()
 			sceneGroup:insert(flyingDevils[#flyingDevils])
 			flyingDevils[#flyingDevils]:setSequence( "devilFly" )
@@ -434,22 +489,35 @@ local function spawnDevil (event)
 			flyingDevils[#flyingDevils].myName = "devil"
 			flyingDevils[#flyingDevils]:addEventListener( "collision")
 		else
-			flowerPowerUps[#flowerPowerUps+1] = createFlowerPowerUp()
-			sceneGroup:insert(flowerPowerUps[#flowerPowerUps])
-			flowerPowerUps[#flowerPowerUps]:setSequence( "flowerPowerUp" )
-			flowerPowerUps[#flowerPowerUps]:play()
-			flyingFlower(flowerPowerUps[#flowerPowerUps])
-			physics.addBody( flowerPowerUps[#flowerPowerUps], "dynamic", { isSensor = true } )
-			flowerPowerUps[#flowerPowerUps].type = "flowerPowerUp"
-			flowerPowerUps[#flowerPowerUps].collision = onFlyingFlowerPowerUpCollision
-			flowerPowerUps[#flowerPowerUps].myName = "flowerPowerUp"
-			flowerPowerUps[#flowerPowerUps]:addEventListener( "collision")
+			if math.random(17,18) == 17 then
+				print("flower")
+				flowerPowerUps[#flowerPowerUps+1] = createFlowerPowerUp()
+				sceneGroup:insert(flowerPowerUps[#flowerPowerUps])
+				flowerPowerUps[#flowerPowerUps]:setSequence( "flowerPowerUp" )
+				flowerPowerUps[#flowerPowerUps]:play()
+				flyingFlower(flowerPowerUps[#flowerPowerUps])
+				physics.addBody( flowerPowerUps[#flowerPowerUps], "dynamic", { isSensor = true } )
+				flowerPowerUps[#flowerPowerUps].type = "flowerPowerUp"
+				flowerPowerUps[#flowerPowerUps].collision = onFlyingFlowerPowerUpCollision
+				flowerPowerUps[#flowerPowerUps].myName = "flowerPowerUp"
+				flowerPowerUps[#flowerPowerUps]:addEventListener( "collision")
+			else
+				print("whale")
+				whalePowerUps[#whalePowerUps+1] = createWhalePowerUp()
+				sceneGroup:insert(whalePowerUps[#whalePowerUps])
+				whalePowerUps[#whalePowerUps]:setSequence( "whalePowerUp" )
+				whalePowerUps[#whalePowerUps]:play()
+				flyingWhale(whalePowerUps[#whalePowerUps])
+				physics.addBody( whalePowerUps[#whalePowerUps], "dynamic", { isSensor = true } )
+				whalePowerUps[#whalePowerUps].type = "whalePowerUp"
+				whalePowerUps[#whalePowerUps].collision = onFlyingWhalePowerUpCollision
+				whalePowerUps[#whalePowerUps].myName = "whalePowerUp"
+				whalePowerUps[#whalePowerUps]:addEventListener( "collision")
+			end
 		end
 		spawnTimer = 0
 	end	
 end
-
-
 
 local drawHitLine = function( x1,y1,x2,y2)
 	ray[#ray+1] = display.newLine(x1,y1,x2,y2)
@@ -480,6 +548,8 @@ end
 
 local function onFrame(event)
 
+	print(fireWorld.hits)
+
 	if event.time/1000 < 20 then
 		spawnAfter = 300
 	elseif event.time/1000 < 40 then
@@ -493,14 +563,17 @@ local function onFrame(event)
 	end
 
 	if shield then
-		shieldCounter = shieldCounter -1
-		if shieldCounter < 1 then
+		print(shieldCounter)
+		shieldCounter = shieldCounter - 1
+		if shieldCounter <= 1 then
+			print("invis")
 			shield = false
-			--shieldImage.alpha = 0
+			shieldImage.alpha = 0
 			dmonDamage = dmonMaxDamage
+		else
+			dmonDamage = 0
+			shieldImage.alpha = 1
 		end
-		dmonDamage = 0
-		--shieldImage.alpha = 1
 	end
 
 	background1.x = background1.x -0.5
@@ -735,20 +808,24 @@ local function onFrame(event)
 			if v.hit then
 				if v.isVisible then
 					v.hp = v.hp - 1
-					if v.hp == 0 then
+					if v.hp == 0 then						
+						if v.myName == "flowerPowerUp" then
+							print(fireWorld.hits)
+							print("heal the world")
+							fireWorld.hits = fireWorld.hits - 0.1
+							if fireWorld.hits <= 0 then
+								fireWorld.hits = 0
+							end
+							print(fireWorld.hits)
+						elseif v.myName == "whalePowerUp" then
+							print("shield")
+							startShield()
+						end
 						v.lifeTime = -1000
 						timer.performWithDelay( 100, function(...)
 							v:removeSelf( )
 							v = nil
 						end )
-						print(fireWorld.hits)
-						print("heal the world")
-						fireWorld.hits = fireWorld.hits - 0.1
-						if fireWorld.hits <= 0 then
-							fireWorld.hits = 0
-						end
-						print(fireWorld.hits)
-
 					end
 				end
 			end
@@ -760,6 +837,7 @@ local function initScene(...)
 	devils = {}
 	flyingDevils = {}
 	flowerPowerUps = {}
+	whalePowerUps = {}
 	powerUps = {}
 	ray = {}
 	spawnTimer = 0
