@@ -272,7 +272,7 @@ local function setDevil(rotation)
 	devils[#devils].fireOn = false
 end
 
-local function createFlyingDevil(...)
+local function createFlyingDevil()
 	local flyingDevil = display.newSprite( devilFlySheet, devilFlySequence)
 	local spawnArea = math.random( 4 ) -- 1 = left, 2 = bottom, 3 = right, 4 = top
 	local posX
@@ -281,17 +281,17 @@ local function createFlyingDevil(...)
 		posX = -1 * math.random(100, 200)
 		posY = math.random(screenH)
 		local difY = posY - world.y
-		flyingDevil.rotation = 1/8 * -1 * difY + 270 + 180
+		flyingDevil.rotation = 0.125 * -difY + 450
 	elseif spawnArea == 2 then
 		posX = math.random(screenW)
 		posY = math.random (screenH + 100, screenH + 200)
 		local difX = posX - world.x
-		flyingDevil.rotation = 9/128 * -1 * difX
+		flyingDevil.rotation = 9/128 * -difX
 	elseif spawnArea == 3 then
 		posX = math.random(screenW + 100, screenW + 200)
 		posY = math.random(screenH)
 		local difY = posY - world.y
-		flyingDevil.rotation = 1/8 * difY + 90 + 180
+		flyingDevil.rotation = 0.125 * difY + 270
 	elseif spawnArea == 4 then
 		posX = math.random(screenH)
 		posY = -1 * math.random(100, 200)
@@ -358,17 +358,17 @@ local function createFlowerPowerUp(...)
 		posX = -1 * math.random(100, 200)
 		posY = math.random(screenH)
 		local difY = posY - world.y
-		flowerPowerUp.rotation = 1/8 * -1 * difY + 270
+		flowerPowerUp.rotation = 0.125 * - difY + 270
 	elseif spawnArea == 2 then
 		posX = math.random(screenW)
 		posY = math.random (screenH + 100, screenH + 200)
 		local difX = posX - world.x
-		flowerPowerUp.rotation = 9/128 * -1 * difX - 180
+		flowerPowerUp.rotation = 9/128 * - difX - 180
 	elseif spawnArea == 3 then
 		posX = math.random(screenW + 100, screenW + 200)
 		posY = math.random(screenH)
 		local difY = posY - world.y
-		flowerPowerUp.rotation = 1/8 * difY + 90
+		flowerPowerUp.rotation = 0.125 * difY + 90
 	elseif spawnArea == 4 then
 		posX = math.random(screenH)
 		posY = -1 * math.random(100, 200)
@@ -410,12 +410,10 @@ local function onFlyingFlowerPowerUpCollision(self, event)
 	end
 end
 
-local function spawnDevil (event)
-	local randomDrop = math.random( 10 )
-	
+local function spawnDevil (event)	
 	spawnTimer = spawnTimer + 1
 	if spawnTimer >= spawnAfter then
-		if randomDrop <= 9 then		
+		if math.random( 10 ) <= 9 then		
 			flyingDevils[#flyingDevils+1] = createFlyingDevil()
 			sceneGroup:insert(flyingDevils[#flyingDevils])
 			flyingDevils[#flyingDevils]:setSequence( "devilFly" )
@@ -449,14 +447,12 @@ end
 
 local function onDevilDeadListener(event)
 	if event.phase == "ended" then
-		print("he dead")
 		event.target:removeSelf()
 		event.target = nil
 	end
 end
 
 local function dieDevilDie (devil)
-	print("die")
 	local dyingDevil = display.newSprite( develDieSheet, develDieSequence )
 	dyingDevil.x, dyingDevil.y = devil.x, devil.y
 	dyingDevil.anchorX, dyingDevil.anchorY = devil.anchorX, devil.anchorY
@@ -485,7 +481,6 @@ local function onFrame( )
 	for k,v in pairs(powerUps) do
 		v.lifeTime = v.lifeTime - 1
 		if v.lifeTime == 0 then
-			print("remove flower")
 			v:removeSelf( )
 			v = nil
 		elseif v.lifeTime == 200 then
@@ -551,34 +546,35 @@ local function onFrame( )
 		display.remove( ray[i] ) ; ray[i] = nil
 	end
 
-
 	for k,v in pairs (fires) do
-		fires[k].fireCounter =fires[k].fireCounter -1
+		v.fireCounter = v.fireCounter -1
 		fireWorld.hits = fireWorld.hits + 0.00001
-		if fires[k].fireCounter == 0 then
-			fires[k].fireCounter = math.random(300,400)
-			createFire(fires[k].rotation)
+		if v.fireCounter == 0 then
+			v.fireCounter = math.random(300,400)
+			createFire(v.rotation)
 		end
 
-		angle = fires[k].rotation - 90
-		x = world.x + (world.width/2 * math.cos(math.rad(angle)))
-		y = world.y + (world.width/2 * math.sin(math.rad(angle)))
-		if fires[k].rotation > 180 and fires[k].rotation < 270 then
-			fires[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
-		elseif fires[k].rotation > 0 and fires[k].rotation < 90  then
-			fires[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
+		angle = v.rotation - 90
+		local x = world.x + (world.width/2 * math.cos(math.rad(angle)))
+		local y = world.y + (world.width/2 * math.sin(math.rad(angle)))
+		if v.rotation > 180 and v.rotation < 270 then
+			v.hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
+		elseif v.rotation > 0 and v.rotation < 90  then
+			v.hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
 		else
-			fires[k].hit = particleSystem:rayCast( x-20, y-20, x+20, y+20 )
+			v.hit = particleSystem:rayCast( x-20, y-20, x+20, y+20 )
 		end
 
-		if fires[k].hit then
-			if fires[k].isVisible then
-				fires[k].hp = fires[k].hp - 1
-				if fires[k].hp == 5 then
-					createSteam(fires[k].rotation)
+		if v.hit then
+			if v.isVisible then
+				v.hp = v.hp - 1
+				if v.hp == 5 then
+					createSteam(v.rotation)
 					audio.play(flameDieSound)
-				elseif fires[k].hp < 1 then
-					fires[k].isVisible = false
+				elseif v.hp < 1 then
+					v.isVisible = false
+					v:removeSelf( )
+					v = nil
 					table.remove(fires, k)
 					scorePoints = scorePoints+0.5
 					print ("score:",scorePoints)
@@ -588,9 +584,9 @@ local function onFrame( )
 	end
 
 	for k,v in pairs(devils) do
-		if devils[k] then
-			if devils[k].rotation then
-				if devils[k].fireOn then
+		if v then
+			if v.rotation then
+				if v.fireOn then
 					fireWorld.hits = fireWorld.hits + 0.00002
 					fireWorld.alpha = fireWorld.hits
 					if fireWorld.alpha > 0.15 and fireWorld.alpha < 0.2 then
@@ -603,26 +599,10 @@ local function onFrame( )
 						world:setSequence( "stage5" )
 					end
 
-
 					if fireWorld.alpha > 0.99  then
 						Runtime:removeEventListener( "enterFrame", onFrame )
 						if goToEnd == false then
-							goToEnd = true
-							for k,v in pairs(devils) do
-								table.remove(devils, k)
-							end
-							-- for k,v in pairs(steams) do
-							-- 	if steams[k] then
-							-- 		steams[k]:removeSelf()
-							-- 		steams[k] = nil
-							-- 	end
-							-- end 
-							audio.dispose() 
-							score.set( scorePoints )
-							score.save()
-							display.remove( particleSystem )
-							Runtime:removeEventListener( "enterFrame", spawnDevil)
-							print("Game Over")
+							goToEnd = true							
 							local gameOver = display.newImageRect( "assets/gameOver.png", screenW, screenH )
 							gameOver.x, gameOver.y = halfW, halfH
 							transition.blink( gameOver, {time = 500} )
@@ -637,59 +617,54 @@ local function onFrame( )
 						end
 					end
 				end
+
 				if devils then
-					if devils[k]then
-						if devils[k].fireCounter >= 1 then
-							devils[k].fireCounter = devils[k].fireCounter - 1
-							if devils[k].fireCounter <= 0 and  devils[k].fireOn == false then
-								devils[k].fireOn = true
-								devils[k]:setSequence( "devilFire" )
-								devils[k]:play()
-								devils[k].fireCounter = math.random(100,200)
-							elseif devils[k].fireCounter <= 0 and  devils[k].fireOn then
-								createFire(devils[k].rotation)
-								devils[k]:setSequence( "devilIdle" )
-								devils[k]:play()
+					if v then
+						if v.fireCounter >= 1 then
+							v.fireCounter = v.fireCounter - 1
+							if v.fireCounter <= 0 and  v.fireOn == false then
+								v.fireOn = true
+								v:setSequence( "devilFire" )
+								v:play()
+								v.fireCounter = math.random(100,200)
+							elseif v.fireCounter <= 0 and  v.fireOn then
+								createFire(v.rotation)
+								v:setSequence( "devilIdle" )
+								v:play()
 							end
 						end
 					end
 				end
+
 				if not goToEnd then
-					angle = devils[k].rotation - 90
+					angle = v.rotation - 90
 					x = world.x + (world.width/2 * math.cos(math.rad(angle)))
 					y = world.y + (world.width/2 * math.sin(math.rad(angle)))
-					if devils[k].rotation > 180 and devils[k].rotation < 270 then
-						devils[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
-					elseif devils[k].rotation > 0 and devils[k].rotation < 90  then
-						devils[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
+					if v.rotation > 180 and v.rotation < 270 then
+						v.hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
+					elseif v.rotation > 0 and v.rotation < 90  then
+						v.hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
 					else
-						devils[k].hit = particleSystem:rayCast( x-20, y-20, x+20, y+20 )
+						v.hit = particleSystem:rayCast( x-20, y-20, x+20, y+20 )
 					end
 
-					if devils[k].hit then
-						if devils[k].isVisible then
-							devils[k].hp = devils[k].hp - 1
-							if devils[k].hp == 10 then
-								createSteam(devils[k].rotation)
-							elseif devils[k].hp == 1 then
+					if v.hit then
+						if v.isVisible then
+							v.hp = v.hp - 1
+							if v.hp == 10 then
+								createSteam(v.rotation)
+							elseif v.hp == 1 then
 								audio.play(deamonDieSound)
-								dieDevilDie(devils[k])
-								devils[k].isVisible = false
+								dieDevilDie(v)
+								v.isVisible = false
 								table.remove(devils, k)
 								scorePoints = scorePoints + 1
 								print ("score:",scorePoints)
 							end
-						else
-							-- if devils[k].rotation > 180 and devils[k].rotation < 270 then
-							-- 	drawHitLine( x-20, y+20, x+20, y-20 )
-							-- elseif devils[k].rotation > 0 and devils[k].rotation < 90  then
-							-- 	drawHitLine( x-20, y+20, x+20, y-20 )
-							-- else
-							-- 	drawHitLine( x-20, y-20, x+20, y+20 )
-							-- end
 						end
 					end
 				end
+
 			end
 		end
 	end
@@ -710,31 +685,31 @@ local function onFrame( )
 	-- 		-- angle = powerUps[k].rotation - 90
 	-- 		-- x = world.x + (world.width/2 * math.cos(math.rad(angle)))
 	-- 		-- y = world.y + (world.width/2 * math.sin(math.rad(angle)))
-	-- 		-- if devils[k].rotation > 180 and devils[k].rotation < 270 then
-	-- 		-- 	devils[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
-	-- 		-- elseif devils[k].rotation > 0 and devils[k].rotation < 90  then
-	-- 		-- 	devils[k].hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
+	-- 		-- if v.rotation > 180 and v.rotation < 270 then
+	-- 		-- 	v.hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
+	-- 		-- elseif v.rotation > 0 and v.rotation < 90  then
+	-- 		-- 	v.hit = particleSystem:rayCast( x-20, y+20, x+20, y-20 )
 	-- 		-- else
-	-- 		-- 	devils[k].hit = particleSystem:rayCast( x-20, y-20, x+20, y+20 )
+	-- 		-- 	v.hit = particleSystem:rayCast( x-20, y-20, x+20, y+20 )
 	-- 		-- end
 
-	-- 		-- if devils[k].hit then
-	-- 		-- 	if devils[k].isVisible then
-	-- 		-- 		devils[k].hp = devils[k].hp - 1
-	-- 		-- 		if devils[k].hp == 10 then
-	-- 		-- 			createSteam(devils[k].rotation)
-	-- 		-- 		elseif devils[k].hp == 1 then
+	-- 		-- if v.hit then
+	-- 		-- 	if v.isVisible then
+	-- 		-- 		v.hp = v.hp - 1
+	-- 		-- 		if v.hp == 10 then
+	-- 		-- 			createSteam(v.rotation)
+	-- 		-- 		elseif v.hp == 1 then
 	-- 		-- 			audio.play(deamonDieSound)
-	-- 		-- 			dieDevilDie(devils[k])
-	-- 		-- 			devils[k].isVisible = false
+	-- 		-- 			dieDevilDie(v)
+	-- 		-- 			v.isVisible = false
 	-- 		-- 			table.remove(devils, k)
 	-- 		-- 			scorePoints = scorePoints + 1
 	-- 		-- 			print ("score:",scorePoints)
 	-- 		-- 		end
 	-- 		-- 	else
-	-- 		-- 		if devils[k].rotation > 180 and devils[k].rotation < 270 then
+	-- 		-- 		if v.rotation > 180 and v.rotation < 270 then
 	-- 		-- 			drawHitLine( x-20, y+20, x+20, y-20 )
-	-- 		-- 		elseif devils[k].rotation > 0 and devils[k].rotation < 90  then
+	-- 		-- 		elseif v.rotation > 0 and v.rotation < 90  then
 	-- 		-- 			drawHitLine( x-20, y+20, x+20, y-20 )
 	-- 		-- 		else
 	-- 		-- 			drawHitLine( x-20, y-20, x+20, y+20 )
@@ -795,8 +770,6 @@ function scene:create( event )
 	sceneGroup:insert( background3 )
 
 	local worldGroup = display.newGroup()
-
-	print("physics")
 
 	physics.start()
 	physics.setGravity( 0, 0)
@@ -911,25 +884,26 @@ end
 
 
 function scene:show( event )
-	print("show")
-	local sceneGroup = self.view
 	local phase = event.phase
 	
 	if phase == "will" then
-		print("will")
+
 	elseif phase == "did" then
-		print("did")
+
 	end
 end
 
 function scene:hide( event )
-	local sceneGroup = self.view
 	
 	local phase = event.phase
 	
 	if event.phase == "will" then
-
+		Runtime:removeEventListener( "enterFrame", spawnDevil)
 		physics.stop()
+		audio.dispose() 
+		score.set( scorePoints )
+		score.save()
+		display.remove( particleSystem )
 	elseif phase == "did" then
 
 	end	
@@ -937,11 +911,8 @@ function scene:hide( event )
 end
 
 function scene:destroy( event )
-
-	local sceneGroup = self.view
-	
-	--package.loaded[physics] = nil
-	--physics = nil
+	sceneGroup:removeSelf( )
+	sceneGroup = nil
 end
 
 ---------------------------------------------------------------------------------

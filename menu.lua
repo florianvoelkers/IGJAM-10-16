@@ -6,10 +6,8 @@
 
 local composer = require( "composer" )
 local scene = composer.newScene()
+local sceneGroup
 local score = require( "score" )
-
-
-
 
 -- include Corona's "widget" library
 local widget = require "widget"
@@ -31,9 +29,6 @@ local rightTouchArea
 local background1
 local background2
 local background3
-
-local sceneNotCalled = true
-
 
 --------------------------------------------
 
@@ -132,22 +127,20 @@ local function onFrame(event)
 			display.remove(particleSystem)
 			particleSystem = nil
 			physics.stop()
-			if sceneNotCalled then
-				sceneNotCalled = false
-				playButton:removeSelf( )
-				leftTouchArea.isHitTestable = false
-				rightTouchArea.isHitTestable = false
-				timer.performWithDelay( 500, function (...)
-					composer.gotoScene( "level1", "fade", 500)
-				end )
-			end
+			leftTouchArea.isHitTestable = false
+			rightTouchArea.isHitTestable = false
+			timer.performWithDelay( 500, function (...)
+				composer.gotoScene( "level1", "fade", 500)
+				composer.removeHidden( )
+				composer.removeScene("menu")
+			end )
 		end
 	end
 
 end
 
 function scene:create( event )
-	local sceneGroup = self.view
+	sceneGroup = self.view
 	
 
 	local scoreText = score.init({
@@ -155,8 +148,6 @@ function scene:create( event )
 	})
 
 	local highscore = score.load()
-
-	print(highscore)
 
 	musik = audio.loadStream("assets/sound/music/theme.mp3")
 	local optionsSound ={loops = -1}
@@ -285,7 +276,6 @@ function scene:create( event )
 end
 
 function scene:show( event )
-	local sceneGroup = self.view
 	local phase = event.phase
 	
 	if phase == "will" then
@@ -296,7 +286,6 @@ function scene:show( event )
 end
 
 function scene:hide( event )
-	local sceneGroup = self.view
 	local phase = event.phase
 	
 	if event.phase == "will" then
@@ -307,17 +296,8 @@ function scene:hide( event )
 end
 
 function scene:destroy( event )
-	local sceneGroup = self.view
-	
-	-- Called prior to the removal of scene's "view" (sceneGroup)
-	-- 
-	-- INSERT code here to cleanup the scene
-	-- e.g. remove display objects, remove touch listeners, save state, etc.
-	
-	if playBtn then
-		playBtn:removeSelf()	-- widgets must be manually removed
-		playBtn = nil
-	end
+	sceneGroup:removeSelf( )
+	sceneGroup = nil
 end
 
 ---------------------------------------------------------------------------------

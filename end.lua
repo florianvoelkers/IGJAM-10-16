@@ -28,6 +28,8 @@ local function onPlayBtnRelease(event)
 	
 	if event.phase == "began" then
 		composer.gotoScene( "level1", "fade", 500 )
+		composer.removeHidden( )
+		composer.removeScene("end")
 	end
 	return true	-- indicates successful touch
 end
@@ -50,7 +52,6 @@ local function onFrame( )
 end
 
 function scene:create( event )
-	print ("scene create end")
 	sceneGroup = self.view
 
 	background1 = display.newImageRect( "assets/map/background/1.png", display.contentWidth, display.contentHeight )
@@ -71,7 +72,6 @@ function scene:create( event )
 	score:load()
 	local scoreTable = score:get()
 	local scoreText = display.newText( scoreTable[1], display.contentCenterX, display.contentCenterY, native.systemFontBold, 72 )
-	--print("score: " .. score:get())
 	scoreText:setFillColor( 1, 0.3137, 0.0196 )
 
 	retryButton = display.newImageRect( "assets/play.png", 100, 100 )
@@ -89,49 +89,26 @@ function scene:create( event )
 end
 
 function scene:show( event )
-	print ("show")
-	local sceneGruppe = self.view
+	
 	local phase = event.phase
-	print ("scene show")
 	if phase == "will" then
-			print ("will show")
 
-		-- Called when the scene is still off screen and is about to move on screen
 	elseif phase == "did" then
 		score.get()
-		-- Called when the scene is now on screen
-		-- 
-		-- INSERT code here to make the scene come alive
-		-- e.g. start timers, begin animation, play audio, etc.
 	end	
 end
 
-function scene:hide( event )
-	local sceneGruppe = self.view
-	local phase = event.phase
-	
+function scene:hide( event )	
 	if event.phase == "will" then
-		-- Called when the scene is on screen and is about to move off screen
-		--
-		-- INSERT code here to pause the scene
-		-- e.g. stop timers, stop animation, unload sounds, etc.)
+		Runtime:removeEventListener( "enterFrame", onFrame )
 	elseif phase == "did" then
 		-- Called when the scene is now off screen
 	end	
 end
 
 function scene:destroy( event )
-	local sceneGruppe = self.view
-	
-	-- Called prior to the removal of scene's "view" (sceneGruppe)
-	-- 
-	-- INSERT code here to cleanup the scene
-	-- e.g. remove display objects, remove touch listeners, save state, etc.
-	
-	if playBtn then
-		playBtn:removeSelf()	-- widgets must be manually removed
-		playBtn = nil
-	end
+	sceneGroup:removeSelf( )
+	sceneGroup = nil
 end
 
 ---------------------------------------------------------------------------------
