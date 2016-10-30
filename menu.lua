@@ -126,7 +126,6 @@ local function onFrame(event)
 			physics.setGravity(0, 0)
 			display.remove(particleSystem)
 			particleSystem = nil
-			physics.stop()
 			leftTouchArea.isHitTestable = false
 			rightTouchArea.isHitTestable = false
 			timer.performWithDelay( 500, function (...)
@@ -289,7 +288,7 @@ function scene:hide( event )
 	local phase = event.phase
 	
 	if event.phase == "will" then
-		--physics.stop()
+		physics.stop()
 	elseif phase == "did" then
 		-- Called when the scene is now off screen
 	end	

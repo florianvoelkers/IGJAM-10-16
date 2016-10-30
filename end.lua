@@ -71,9 +71,15 @@ function scene:create( event )
 	highestScore.x, highestScore.y  = display.contentCenterX, display.contentCenterY
 	score:load()
 	local scoreTable = score:get()
-	local scoreText = display.newText( scoreTable[1], display.contentCenterX, display.contentCenterY, native.systemFontBold, 72 )
-	scoreText:setFillColor( 1, 0.3137, 0.0196 )
-
+	table.sort(scoreTable)
+	local scoreGroup = display.newGroup( )
+	for i = 1, 3 do
+		if i <= #scoreTable then
+			local scoreText = display.newText(i .. ".     " .. scoreTable[#scoreTable - (i-1)], display.contentCenterX, 220 + (i-1) * 75, native.systemFontBold, 72 )
+			scoreText:setFillColor( 1, 0.3137, 0.0196 )
+			scoreGroup:insert(scoreText)
+		end
+	end
 	retryButton = display.newImageRect( "assets/play.png", 100, 100 )
 	retryButton.x, retryButton.y = display.contentCenterX, display.contentHeight - 200
 	retryButton:addEventListener( "touch", onPlayBtnRelease )
@@ -82,7 +88,7 @@ function scene:create( event )
 	sceneGroup:insert( background2 )
 	sceneGroup:insert( background3 )
 	sceneGroup:insert( highestScore )
-	sceneGroup:insert(scoreText)
+	sceneGroup:insert(scoreGroup)
 	sceneGroup:insert(retryButton)
 
 	Runtime:addEventListener( "enterFrame", onFrame )

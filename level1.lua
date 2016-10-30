@@ -44,6 +44,7 @@ local flameDieSound
 local background1
 local background2
 local background3
+local scoreText
 local clouds
 
 
@@ -577,7 +578,7 @@ local function onFrame( )
 					v = nil
 					table.remove(fires, k)
 					scorePoints = scorePoints+0.5
-					print ("score:",scorePoints)
+					scoreText.text = "Score: " .. scorePoints
 				end
 			end
 		end
@@ -659,7 +660,7 @@ local function onFrame( )
 								v.isVisible = false
 								table.remove(devils, k)
 								scorePoints = scorePoints + 1
-								print ("score:",scorePoints)
+								scoreText.text = "Score: " .. scorePoints
 							end
 						end
 					end
@@ -720,10 +721,7 @@ local function onFrame( )
 	-- end
 end
 
-
-
-function scene:create( event )
-
+local function initScene(...)
 	devils = {}
 	flyingDevils = {}
 	flowerPowerUps = {}
@@ -748,10 +746,10 @@ function scene:create( event )
 
 	audio.setVolume( 0.5 ) 
 
-	sceneGroup = self.view
-
 	display.setDefault("isAnchorClamped",false)
+end
 
+local function setUpBackground()
 	background1 = display.newImageRect( "assets/map/background/1.png", screenW, screenH )
 	background1.x = halfW
 	background1.y = halfH
@@ -768,6 +766,13 @@ function scene:create( event )
 	sceneGroup:insert( background1 )
 	sceneGroup:insert( background2 )
 	sceneGroup:insert( background3 )
+end
+
+function scene:create( event )
+	sceneGroup = self.view
+
+	initScene()
+	setUpBackground()
 
 	local worldGroup = display.newGroup()
 
@@ -809,9 +814,6 @@ function scene:create( event )
 	clouds.x = halfW
 	clouds.y = halfH
 	worldGroup:insert(clouds)
-
-
-
 
 	leftSide = display.newRect( worldGroup, world.x,world.y, 600, 90 )
 	leftSide.alpha=0
@@ -876,6 +878,9 @@ function scene:create( event )
 	rightTouchArea.isHitTestable = true
 	rightTouchArea:setFillColor( 1, 1, 1 )
 	rightTouchArea:addEventListener( "touch", onTouchRight )
+
+	scoreText = display.newText( worldGroup, "Score: " .. scorePoints, display.actualContentWidth - 200, 50, native.systemFontBold, 42 )
+	scoreText:setFillColor( 1, 0.3137, 0.0196 )
 
 	sceneGroup:insert(leftTouchArea)
 	sceneGroup:insert(rightTouchArea)
