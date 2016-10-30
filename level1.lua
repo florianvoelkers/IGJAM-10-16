@@ -603,7 +603,11 @@ local function onFrame( )
 					if fireWorld.alpha > 0.99  then
 						Runtime:removeEventListener( "enterFrame", onFrame )
 						if goToEnd == false then
-							goToEnd = true							
+							goToEnd = true	
+							Runtime:removeEventListener( "enterFrame", spawnDevil)
+							score.set( scorePoints )
+							score.save()
+							display.remove( particleSystem )						
 							local gameOver = display.newImageRect( "assets/gameOver.png", screenW, screenH )
 							gameOver.x, gameOver.y = halfW, halfH
 							transition.blink( gameOver, {time = 500} )
@@ -903,12 +907,8 @@ function scene:hide( event )
 	local phase = event.phase
 	
 	if event.phase == "will" then
-		Runtime:removeEventListener( "enterFrame", spawnDevil)
 		physics.stop()
 		audio.dispose() 
-		score.set( scorePoints )
-		score.save()
-		display.remove( particleSystem )
 	elseif phase == "did" then
 
 	end	
