@@ -414,7 +414,7 @@ end
 local function spawnDevil (event)	
 	spawnTimer = spawnTimer + 1
 	if spawnTimer >= spawnAfter then
-		if math.random( 10 ) <= 9 then		
+		if math.random( 10 ) >= 9 then		
 			flyingDevils[#flyingDevils+1] = createFlyingDevil()
 			sceneGroup:insert(flyingDevils[#flyingDevils])
 			flyingDevils[#flyingDevils]:setSequence( "devilFly" )
@@ -674,18 +674,26 @@ local function onFrame( )
 		end
 	end
 
-	-- for k,v in pairs(powerUps) do
-	-- 	if not goToEnd then
-	-- 		if v.rotation then
-	-- 			print(v.rotation, v.x, v.y)
-	-- 			local posX = math.cos(math.rad(v.rotation + 90)) * world.width * 0.5 + world.x
-	-- 			local posY = math.sin(math.rad(v.rotation - 90)) * world.width * 0.5 + world.y
-	-- 			print(posX, posY)
-	-- 			drawHitLine( posX - 50, posY - 50, posX + 50, posY + 50)
-	-- 			v.hasHitLine = true
-	-- 			print("has hitline")
-				
-	-- 		end
+	for k,v in pairs(powerUps) do
+		if not goToEnd then
+			if v.rotation then
+				print(v.rotation, v.x, v.y)
+				local posX = v.x
+				local posY = v.y
+				if v.rotation < -180 and v.rotation > -90 then
+					drawHitLine( posX-40, posY+40, posX+40, posY-40 )
+				elseif v.rotation > 0 and v.rotation < 90  then
+					drawHitLine( posX-40, posY+40, posX+40, posY-40 )
+				else
+					drawHitLine( posX-40, posY-40, posX+40, posY+40 )
+				end
+				-- local posX = math.cos(math.rad(v.rotation + 90)) * world.width * 0.5 + world.x
+				-- local posY = math.sin(math.rad(v.rotation - 90)) * world.width * 0.5 + world.y
+				-- print(posX, posY)
+				--drawHitLine( posX - 50, posY - 50, posX + 50, posY + 50)
+			end
+		end
+	end
 	-- 		-- powerUps[k].hit = particleSystem
 	-- 		-- angle = powerUps[k].rotation - 90
 	-- 		-- x = world.x + (world.width/2 * math.cos(math.rad(angle)))
