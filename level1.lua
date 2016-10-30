@@ -781,10 +781,6 @@ local function initScene(...)
 	flameDieSound = audio.loadSound( "assets/sound/effects/flameDie.wav" )
 	landingSound = audio.loadSound( "assets/sound/effects/landingDmon.wav" )
 
-
-
-	audio.setVolume( 0.5 ) 
-
 	display.setDefault("isAnchorClamped",false)
 end
 
