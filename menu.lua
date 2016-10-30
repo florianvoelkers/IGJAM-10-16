@@ -364,13 +364,13 @@ function scene:create( event )
 	rightTouchArea:addEventListener( "touch", onTouchRight )
 
 
-	soundOnIcon = display.newImageRect( "assets/soundOnIcon.png", 111, 111 )
+	soundOnIcon = display.newImageRect( "assets/soundOfIcon.png", 111, 111 )
 	soundOnIcon.x ,soundOnIcon.y = 100, display.actualContentHeight-100
 	soundOnIcon:addEventListener( "touch", soundOn )
 
 
 
-	soundOfIcon = display.newImageRect( "assets/soundOfIcon.png", 111, 111 )
+	soundOfIcon = display.newImageRect( "assets/soundOnIcon.png", 111, 111 )
 	soundOfIcon.x ,soundOfIcon.y = 100, display.actualContentHeight-100
 	soundOfIcon.isVisible = true
 	soundOfIcon:addEventListener( "touch", soundOff )
